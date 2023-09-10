@@ -2,6 +2,9 @@
 // Created by mrspaar on 7/25/23.
 //
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsubobject-linkage"
+
 #ifndef SQLPP_BASE_H
 #define SQLPP_BASE_H
 
@@ -9,40 +12,18 @@
 
 
 namespace sqlpp::keywords {
-    struct From {} from;
-    struct LeftJoin {} leftJoin;
-    struct InnerJoin {} innerJoin;
-    struct CrossJoin {} crossJoin;
-    struct On {} on;
-    struct Where {} where;
-    struct OrderBy {} orderBy;
-    struct GroupBy {} groupBy;
-    struct Having {} having;
-    struct Limit {} limit;
-    struct Set {} set;
-    struct Abort {} abort;
-    struct Fail {} fail;
-    struct Ignore {} ignore;
-    struct Replace {} replace;
-    struct Rollback {} rollback;
-    struct Into {} into;
-    struct DefaultValues {} defaultValues;
-    struct Cout {} cout;
-    struct Run{} run;
-    struct Fetch{} fetch;
-}
+    struct Cout{} cout;
 
-
-namespace sqlpp::types {
+    template<typename Derived, char const *str>
     struct Keyword {
-        std::string sql;
-        explicit Keyword() = default;
-        explicit Keyword(std::string sql): sql(std::move(sql)) {}
+        std::string *source = nullptr;
 
-        explicit Keyword(const std::string &sql, const std::string &op) {
-            this->sql = sql;
-            removeComma();
-            this->sql.append(op);
+        Derived& operator()(std::string *src) {
+            source = src;
+            removeTrailingComma();
+
+            source->append(str);
+            return static_cast<Derived&>(*this);
         }
 
         template<typename T>
@@ -50,34 +31,83 @@ namespace sqlpp::types {
             static_assert(traits::always_false<T>::value, "Invalid operation");
         }
 
-        void removeComma() {
-            if (sql.size() > 1 && this->sql[sql.size() - 2] == ',') {
-                this->sql.pop_back();
-                this->sql.pop_back();
-            }
+        void operator,(Cout&) const {
+            removeTrailingComma();
+            std::cout << *source << ";" << std::endl;
+        }
+
+        void removeTrailingComma() const {
+            if (source->find(", ", source->size()-2) != std::string::npos)
+                source->erase(source->size()-2, 2);
         }
     };
 
-    struct Runnable: Keyword {
-        using Keyword::Keyword;
+
+    constexpr char const limitStr[] = " LIMIT ";
+    struct Limit: Keyword<Limit, limitStr> {
         using Keyword::operator,;
 
-        void operator,(keywords::Cout) {
-            removeComma();
-            std::cout << sql << ";" << std::endl;
-        }
-
-        std::unique_ptr<SQLResult> operator,(Database &db) {
-            removeComma();
-            return db.rawQuery(sql);
+        Limit& operator,(int x) {
+            source->append(std::to_string(x)).append(", ");
+            return *this;
         }
     };
 
-    template<typename ReturnType, typename Operator>
-    struct Intermediate: Keyword {
-        using Keyword::Keyword;
+
+    constexpr char const orderByStr[] = " ORDER BY ";
+    struct OrderBy: Keyword<OrderBy, orderByStr> {
         using Keyword::operator,;
-        ReturnType operator,(Operator) const { return ReturnType(sql); }
+
+        OrderBy& operator,(const expr::OrderExpr &expr) {
+            source->append(expr.sql).append(", ");
+            return *this;
+        }
+
+        template<typename T>
+        OrderBy& operator,(const types::SQLCol<T> &col) {
+            source->append(col.name).append(", ");
+            return *this;
+        }
+
+        Limit& operator,(Limit&& token) { return token(source); };
+    };
+
+
+    constexpr char const whereStr[] = " WHERE ";
+    struct Where: Keyword<Where, whereStr> {
+        using Keyword::operator,;
+
+        virtual Where& operator,(const expr::ChainedExpr &expr) {
+            source->append(expr.sql);
+            return *this;
+        }
+
+        OrderBy& operator,(OrderBy&& token) { return token(source); };
+        Limit& operator,(Limit&& token) { return token(source); };
+    };
+
+
+    constexpr char const fromStr[] = " FROM ";
+    struct From: Keyword<From, fromStr> {
+        using Keyword::operator,;
+
+        virtual From& operator,(const types::SQLTable &table) {
+            source->append(table.name);
+            return *this;
+        }
+
+        virtual Where& operator,(Where&& token) { return token(source); };
+    };
+
+    constexpr char const abortStr[] = "OR ABORT ";
+    constexpr char const failStr[] = "OR FAIL ";
+    constexpr char const ignoreStr[] = "OR IGNORE ";
+    constexpr char const replaceStr[] = "OR REPLACE ";
+    constexpr char const rollbackStr[] = "OR ROLLBACK ";
+
+    template<char const *str>
+    struct Or: Keyword<Or<str>, str> {
+        using Keyword<Or<str>, str>::operator,;
     };
 }
 

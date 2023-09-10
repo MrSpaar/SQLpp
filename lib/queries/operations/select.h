@@ -5,187 +5,129 @@
 #ifndef SQLPP_SELECT_H
 #define SQLPP_SELECT_H
 
-#include <utility>
 #include "queries/base.h"
 
 
-namespace sqlpp::keywords::Select {
-    struct Offset: types::Runnable {
-        using types::Runnable::operator,;
-        explicit Offset(const std::string &sql): Runnable(sql, ", ") {}
-
-        Runnable operator,(int x) {
-            sql.append(std::to_string(x));
-            return Runnable{sql, ""};
-        }
-    };
-
-    struct Limit: types::Runnable {
-        using types::Runnable::operator,;
-        explicit Limit(const std::string &sql): Runnable(sql, "\nLIMIT ") {}
-
-        Offset operator,(int x) {
-            sql.append(std::to_string(x));
-            return Offset(sql);
-        }
-    };
-
-    struct OrderBy: types::Runnable {
-        using types::Runnable::operator,;
-        explicit OrderBy(const std::string &sql): Runnable(sql, "\nORDER BY ") {}
-
-        OrderBy& operator,(const expr::OrderExpr &expr) {
-            sql.append(expr.sql);
-            return *this;
-        }
-
-        template<typename T>
-        OrderBy& operator,(const types::SQLCol<T> &col) {
-            sql.append(col.name).append(", ");
-            return *this;
-        }
-
-        OrderBy& operator,(const expr::AsExpr &expr) {
-            sql.append(expr.sql).append(", ");
-            return *this;
-        }
-
-        Limit operator,(keywords::Limit) { return Limit(sql); }
-    };
-
-    struct Having: types::Runnable {
-        using types::Runnable::operator,;
-        explicit Having(const std::string &sql): Runnable(sql, "\nHAVING ") {}
+namespace sqlpp::keywords::select {
+    constexpr char const havingStr[] = " HAVING ";
+    struct Having: Keyword<Having, havingStr> {
+        using Keyword::operator,;
 
         Having& operator,(const expr::ChainedExpr &expr) {
-            sql.append(expr.sql);
+            source->append(expr.sql);
             return *this;
         }
 
-        OrderBy operator,(keywords::OrderBy) { return OrderBy(sql); }
-        Limit operator,(keywords::Limit) { return Limit(sql); }
+        OrderBy& operator,(OrderBy&& token) { return token(source); };
+        Limit& operator,(Limit&& token) { return token(source); };
     };
 
-    struct GroupBy: types::Runnable {
-        using types::Runnable::operator,;
-        explicit GroupBy(const std::string &sql): Runnable(sql, "\nGROUP BY ") {}
+
+    constexpr char const groupByStr[] = " GROUP BY ";
+    struct GroupBy: Keyword<GroupBy, groupByStr> {
+        using Keyword::operator,;
 
         template<typename T>
         GroupBy& operator,(const types::SQLCol<T> &col) {
-            sql.append(col.name).append(", ");
+            source->append(col.name).append(", ");
             return *this;
         }
 
-        OrderBy operator,(keywords::OrderBy) { return OrderBy(sql); }
-        Having operator,(keywords::Having) { return Having(sql); }
-        Limit operator,(keywords::Limit) { return Limit(sql); }
+        Having& operator,(Having&& token) { return token(source); }
+        OrderBy& operator,(OrderBy&& token) { return token(source); }
+        Limit& operator,(Limit&& token) { return token(source);  }
     };
 
-    struct Where: types::Runnable {
-        using types::Runnable::operator,;
-        explicit Where(const std::string &sql): Runnable(sql, "\nWHERE ") {}
 
-        Where& operator,(const expr::ChainedExpr &expr) {
-            sql.append(expr.sql);
+    struct SWhere: Where {
+        using Where::operator,;
+
+        SWhere& operator,(const expr::ChainedExpr &expr) override {
+            source->append(" WHERE ").append(expr.sql);
             return *this;
         }
 
-        OrderBy operator,(keywords::OrderBy) { return OrderBy(sql); }
-        Having operator,(keywords::Having) { return Having(sql); }
-        Limit operator,(keywords::Limit) { return Limit(sql); }
+        GroupBy& operator,(GroupBy&& token) { return token(source); }
+        Having& operator,(Having&& token) { return token(source); }
     };
 
-    struct Join: types::Runnable {
-        using types::Runnable::operator,;
-        explicit Join(const std::string &sql): Runnable(sql, "") {}
 
-        Where operator,(keywords::Where) { return Where(sql); }
-        GroupBy operator,(keywords::GroupBy) { return GroupBy(sql); }
-        OrderBy operator,(keywords::OrderBy) { return OrderBy(sql); }
-        Limit operator,(keywords::Limit) { return Limit(sql); }
-    };
+    constexpr char const onStr[] = " ON ";
+    struct On: Keyword<On, onStr> {
+        using Keyword::operator,;
 
-    struct On: types::Keyword {
-        using types::Keyword::operator,;
-        explicit On(const std::string &sql): Keyword(sql, "ON ") {}
-
-        Join operator,(const expr::ChainedExpr &expr) {
-            sql.append(expr.sql).append(" ");
-            return Join(sql);
-        }
-    };
-
-    struct JoinIntermediate : types::Intermediate<On, keywords::On> {
-        using Intermediate<On, keywords::On>::Intermediate;
-        using Intermediate<On, keywords::On>::operator,;
-    };
-
-    template<typename ReturnType>
-    struct JoinTable: types::Keyword {
-        using types::Keyword::operator,;
-
-        explicit JoinTable(std::string sql, const std::string &join): Keyword{ std::move(sql) } {
-            this->sql.pop_back(); this->sql.pop_back();
-            this->sql.append(join);
-        }
-
-        ReturnType operator,(const types::SQLTable &table) {
-            sql.append(table.name).append(" ");
-            return ReturnType(sql);
-        }
-
-        ReturnType operator,(const types::Runnable &subquery) {
-            sql.append("(").append(subquery.sql).append(") ");
-            return ReturnType(sql);
-        }
-    };
-
-    struct From: types::Runnable {
-        using types::Runnable::operator,;
-        explicit From(const std::string &sql): Runnable(sql, "\nFROM ") {}
-
-        From& operator,(const types::SQLTable &table) {
-            sql.append(table.name).append(", ");
+        On& operator,(const expr::ChainedExpr &expr) {
+            source->append(expr.sql);
             return *this;
         }
 
-        From& operator,(const Runnable &subquery) {
-            sql.append("(").append(subquery.sql).append("), ");
+        SWhere& operator,(Where&& token) { return (SWhere&) token(source); }
+        GroupBy& operator,(GroupBy&& token) { return token(source); }
+        Having& operator,(Having&& token) { return token(source); }
+        OrderBy& operator,(OrderBy&& token) { return token(source); }
+        Limit& operator,(Limit&& token) { return token(source); }
+    } on;
+
+    constexpr char const innerJoinStr[] = " INNER JOIN ";
+    constexpr char const leftJoinStr[] = " LEFT JOIN ";
+    constexpr char const crossJoinStr[] = " CROSS JOIN ";
+
+    template<char const *str>
+    struct Join: Keyword<Join<str>, str> {
+        using Keyword<Join<str>, str>::operator,;
+
+        Join& operator,(const types::SQLTable &table) {
+            this->source->append(table.name);
+            return *this;
+        };
+
+        On& operator,(On&& token) { return token(this->source); };
+    };
+
+
+    struct SFrom: From {
+        using From::operator,;
+
+        SFrom& operator,(const types::SQLTable &table) override {
+            source->append(table.name);
             return *this;
         }
 
-        auto operator,(keywords::LeftJoin) { return JoinTable<JoinIntermediate>(sql, "\nLEFT JOIN "); }
-        auto operator,(keywords::InnerJoin) { return JoinTable<JoinIntermediate>(sql, "\nINNER JOIN "); }
-        auto operator,(keywords::CrossJoin) { return JoinTable<Join>(sql, "\nCROSS JOIN "); }
-
-        Where operator,(keywords::Where) { return Where(sql); }
-        GroupBy operator,(keywords::GroupBy) { return GroupBy(sql); }
-        OrderBy operator,(keywords::OrderBy) { return OrderBy(sql); }
-        Limit operator,(keywords::Limit) { return Limit(sql); }
+        template<char const *str>
+        Join<str>& operator,(Join<str>&& token) { return token(source); };
+        SWhere& operator,(Where&& token) override { return (SWhere&) token(source); };
+        GroupBy& operator,(GroupBy&& token) { return token(source); };
+        Having& operator,(Having&& token) { return token(source); };
+        OrderBy& operator,(OrderBy&& token) { return token(source); };
+        Limit& operator,(Limit&& token) { return token(source); };
     };
 
-    struct Select: types::Keyword {
-        using types::Keyword::operator,;
-        explicit Select(): Keyword("SELECT ") {}
+
+    constexpr char const selectStr[] = "SELECT ";
+    struct Select: Keyword<Select, selectStr> {
+        using Keyword::operator,;
+
+        std::string sql;
+        Select(): Keyword<Select, selectStr>() { operator()(&sql); }
 
         template<typename T>
         Select& operator,(const types::SQLCol<T> &col) {
-            sql.append(col.name).append(", ");
+            source->append(col.name).append(", ");
             return *this;
         }
 
         Select& operator,(const expr::AsExpr &expr) {
-            sql.append(expr.sql).append(", ");
-            return *this;
-        }
-        Select& operator,(const expr::AggregateExpr &expr) {
-            sql.append(expr.sql).append(", ");
+            source->append(expr.sql).append(", ");
             return *this;
         }
 
-        From operator,(keywords::From) const { return From(sql); }
+        Select& operator,(const expr::AggregateExpr &expr) {
+            source->append(expr.sql).append(", ");
+            return *this;
+        }
+
+        SFrom& operator,(From&& token) { return (SFrom&) token(source); };
     };
 }
-
 
 #endif //SQLPP_SELECT_H

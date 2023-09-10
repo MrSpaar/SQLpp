@@ -8,28 +8,15 @@
 #include "queries/base.h"
 
 
-namespace sqlpp::keywords::Delete {
-    struct Where: types::Runnable {
-        explicit Where(const std::string &sql): Runnable(sql, "\nWHERE ") {}
-
-        Runnable operator,(const expr::ChainedExpr &expr) {
-            sql.append(expr.sql);
-            return Runnable{sql, ""};
-        };
-    };
-
-    struct DeleteIntermediate: types::Intermediate<Where, keywords::Where> {
-        using types::Intermediate<Where, keywords::Where>::Intermediate;
-    };
-
-    struct DeleteFrom: types::Keyword {
+namespace sqlpp::keywords::del {
+    constexpr char const deleteStr[] = "DELETE";
+    struct Delete: Keyword<Delete, deleteStr> {
         using Keyword::operator,;
-        explicit DeleteFrom(): Keyword("DELETE FROM ") {}
 
-        DeleteIntermediate operator,(const types::SQLTable &table) {
-            sql.append(table.name);
-            return DeleteIntermediate{sql};
-        }
+        std::string sql;
+        Delete(): Keyword<Delete, deleteStr>() { operator()(&sql); }
+
+        From& operator,(From&& token) { return token(source); };
     };
 }
 

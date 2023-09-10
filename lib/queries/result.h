@@ -8,9 +8,7 @@
 #include <map>
 #include <iostream>
 #include <sqlite3.h>
-
 #include "table/table.h"
-
 
 namespace sqlpp {
     struct SQLRow {
@@ -48,6 +46,5 @@ namespace sqlpp {
         auto end() const { return rows.end(); }
     };
 }
-
 
 #endif //SQLPP_RESULT_H

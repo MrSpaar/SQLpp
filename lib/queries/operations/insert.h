@@ -7,93 +7,72 @@
 
 #include "queries/base.h"
 
-namespace sqlpp::keywords::Insert {
-    template<typename... ItemTypes>
-    struct Values: types::Runnable {
-        using Runnable::operator,;
+namespace sqlpp::keywords::insert {
+    /*constexpr char const valuesStr[] = " VALUES (";
 
-        Values& prepend(const std::string &str) {
-            sql.insert(0, str);
+    template<typename... ItemTypes>
+    struct Values: Keyword<Values<ItemTypes...>, valuesStr> {
+        using Keyword<Values<ItemTypes...>, valuesStr>::operator,;
+
+        Values& prepend(std::string *str) {
+            this->source->insert(0, str);
             return *this;
         }
 
         template<typename T>
         void addItem(const T& item) {
             if constexpr (std::is_convertible_v<T, TEXT>)
-                sql.append("'").append(item).append("', ");
+                this->source->append("'").append(item).append("', ");
             else
-                sql.append(std::to_string(item)).append(", ");
+                this->source->append(std::to_string(item)).append(", ");
         }
 
-        explicit Values(ItemTypes... values): Runnable(" VALUES (") {
+        Values& operator()(ItemTypes... values) {
             (addItem(values), ...);
-            sql.pop_back(); sql.pop_back();
-            sql.append(")");
+            this->source->pop_back(); this->source->pop_back();
+            this->source->append(")");
+            return *this;
         }
-    };
+    };*/
 
-    struct Default: types::Runnable {
-        using Runnable::operator,;
-        explicit Default(const std::string &sql): Runnable(sql, " DEFAULT VALUES") {}
-    };
 
-    template<typename... ColTypes>
-    struct ValuesIntermediate: types::Keyword {
+    constexpr char const defaultStr[] = " DEFAULT VALUES";
+    struct DefaultValues: Keyword<DefaultValues, defaultStr> {
         using Keyword::operator,;
-        explicit ValuesIntermediate(std::string sql): Keyword(std::move(sql)) {}
-
-        template<typename... ValTypes>
-        Values<ValTypes...>& operator,(Values<ValTypes...>&& values) {
-            if constexpr ((... && traits::is_matching_col_type<ColTypes, ValTypes>::value))
-                return values.prepend(sql);
-            else
-                static_assert(traits::always_false<Values<ValTypes...>>::value, "Column and value types must match");
-        }
-
-        Default operator,(keywords::DefaultValues) { return Default(sql); };
     };
 
-    struct Into: types::Keyword {
+    
+    constexpr char const intoStr[] = " INTO ";
+    struct Into: Keyword<Into, intoStr> {
         using Keyword::operator,;
-        explicit Into(const std::string &sql): Keyword(sql, "INTO ") {}
 
         template<typename... ColTypes>
-        ValuesIntermediate<ColTypes...> operator,(const expr::CommaExpr<ColTypes...> &expr) {
-            sql.append(expr.sql);
-            return ValuesIntermediate<ColTypes...>(sql);
+        expr::TableExpr<ColTypes...>& operator,(const expr::TableExpr<ColTypes...> &expr) {
+            source->append(expr.sql);
+            return expr;
         };
+
+        DefaultValues& operator,(DefaultValues&& token) { return token(source); };
     };
 
-    struct Insert: types::Keyword {
-        using Keyword::operator,;
 
-        explicit Insert(): Keyword("INSERT ") {}
-        explicit Insert(const std::string &sql): Keyword(sql) {}
-
-        Into operator,(keywords::Into) { return Into(sql); };
+    template<char const *str>
+    struct InsertOr: Or<str> {
+        using Or<str>::operator,;
+        Into& operator,(Into&& token) { return token(this->source); };
     };
 
-    struct InsertOr: types::Keyword {
+
+    constexpr char const insertStr[] = "INSERT ";
+    struct Insert: Keyword<Insert, insertStr> {
         using Keyword::operator,;
-        explicit InsertOr(): Keyword("INSERT ") {}
 
-        template<typename T>
-        Insert operator,(T) {
-            if constexpr (std::is_same_v<T, keywords::Abort>)
-                sql.append("OR ABORT ");
-            else if constexpr (std::is_same_v<T, keywords::Fail>)
-                sql.append("OR FAIL ");
-            else if constexpr (std::is_same_v<T, keywords::Ignore>)
-                sql.append("OR IGNORE ");
-            else if constexpr (std::is_same_v<T, keywords::Replace>)
-                sql.append("OR REPLACE ");
-            else if constexpr (std::is_same_v<T, keywords::Rollback>)
-                sql.append("OR ROLLBACK ");
-            else
-                static_assert(traits::always_false<T>::value, "Unsuported keyword");
+        std::string sql;
+        Insert(): Keyword<Insert, insertStr>() { operator()(&sql); }
 
-            return Insert(sql);
-        };
+        template<char const *str>
+        InsertOr<str>& operator,(Or<str>&& token) { return (InsertOr<str>&) token(source); };
+        Into& operator,(Into&& token) { return token(source); };
     };
 }
 

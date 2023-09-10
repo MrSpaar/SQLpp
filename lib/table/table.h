@@ -7,7 +7,6 @@
 
 #include "column.h"
 
-
 namespace sqlpp::types {
     struct SQLTable {
         std::string name;
@@ -35,8 +34,8 @@ namespace sqlpp::types {
         }
 
         template<typename... Cols>
-        expr::CommaExpr<Cols...> operator()(Cols&&... cols) {
-            return expr::CommaExpr<Cols...>(name, std::forward<Cols>(cols)...);
+        expr::TableExpr<Cols...> operator()(Cols&&... cols) {
+            return expr::TableExpr<Cols...>(name, std::forward<Cols>(cols)...);
         }
     };
 }

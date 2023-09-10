@@ -61,8 +61,6 @@ struct sqlpp::types::SQLCol {
             static_assert(traits::always_false<V>::value, "SQLCol must be numeric to perform arithmetic keywords");
         else if constexpr (traits::is_sql_col<V>::value)
             return expr::CompareExpr{name + " " + op + " " + item.name };
-        else if constexpr (std::is_base_of_v<Runnable, V>)
-            return expr::CompareExpr{name + " " + op + " (" + item.sql + ")" };
         else if constexpr (std::is_same_v<V, INTEGER> || std::is_same_v<V, REAL>)
             return expr::CompareExpr{name + " " + op + " " + std::to_string(item) };
         else
@@ -84,8 +82,6 @@ struct sqlpp::types::SQLCol {
     expr::ChainedExpr formatLogicOp(const std::string &op, const V &item) const {
         if constexpr (traits::is_sql_col<V>::value)
             return expr::ChainedExpr{name + " " + op + " " + item.name };
-        else if constexpr (std::is_base_of_v<Runnable, V>)
-            return expr::ChainedExpr{name + " " + op + " (" + item.sql + ")" };
         else if constexpr (!std::is_same_v<T, V> && !(std::is_same_v<T, TEXT> && std::is_convertible_v<V, TEXT>))
             static_assert(traits::always_false<V>::value, "Invalid comparison");
         else if constexpr (std::is_convertible_v<V, TEXT>)
@@ -108,7 +104,7 @@ struct sqlpp::types::SQLCol {
     expr::ChainedExpr operator!=(const V &value) const { return formatLogicOp("!=", value); }
     template<typename V>
     expr::ChainedExpr operator==(const V &value) const { return formatLogicOp("==", value); }
-    expr::ChainedExpr operator%=(const std::string & value) const { return formatLogicOp("LIKE", value); }
+    expr::ChainedExpr operator^(const std::string & value) const { return formatLogicOp("LIKE", value); }
 
     expr::ChainedExpr between(const T& min, const T& max) const {
         if constexpr (std::is_same_v<T, TEXT>)

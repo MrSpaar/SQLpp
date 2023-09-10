@@ -14,6 +14,9 @@ namespace sqlpp::expr {
         explicit Expr(std::string sql): sql(std::move(sql)) {};
     };
 
+    template<char const *str>
+    struct OrExpr {};
+
     struct EqExpr: Expr {
         using Expr::Expr;
 
@@ -46,8 +49,8 @@ namespace sqlpp::expr {
     };
 
     template<typename... Columns>
-    struct CommaExpr: Expr {
-        explicit CommaExpr(const std::string &tableName, Columns&&... cols): Expr(tableName+"(") {
+    struct TableExpr: Expr {
+        explicit TableExpr(const std::string &tableName, Columns&&... cols): Expr(tableName + "(") {
             (this->sql.append(cols.name).append(", "), ...);
             this->sql.pop_back(); this->sql.pop_back();
             this->sql.append(")");
@@ -79,7 +82,7 @@ namespace sqlpp::expr {
         ReturnType format(const std::string &op, const ItemType &item) const {
             if constexpr (traits::is_sql_col<ItemType>::value)
                 return ReturnType{ this->sql + " " + op + " " + item.name };
-            else if constexpr (std::is_same_v<ItemType, CompareExpr> || std::is_base_of_v<types::Runnable, ItemType>)
+            else if constexpr (std::is_same_v<ItemType, CompareExpr>)
                 return ReturnType{ this->sql + " " + op + " (" + item.sql + ")" };
             else if constexpr (std::is_same_v<ItemType, INTEGER> || std::is_same_v<ItemType, REAL>)
                 return ReturnType{ this->sql + " " + op + " " + std::to_string(item) };
@@ -169,11 +172,6 @@ namespace sqlpp::math {
 
         return expr::CompareExpr{sql + ")"};
     }
-}
-
-
-namespace sqlpp {
-    expr::Expr operator ""_SQL(const char *name, size_t) { return expr::Expr{name }; }
 }
 
 

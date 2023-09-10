@@ -8,64 +8,49 @@
 #include "queries/base.h"
 
 
-namespace sqlpp::keywords::Update {
-    struct Where: types::Runnable {
-        using Runnable::operator,;
-        explicit Where(const std::string &sql): Runnable(sql, "\nWHERE ") {}
-
-        Runnable operator,(const expr::ChainedExpr &expr) {
-            return Runnable{sql, expr.sql};
-        }
-    };
-
-    struct Set: types::Runnable {
-        using Runnable::operator,;
-        explicit Set(const std::string &sql): Runnable(sql, "\nSET ") {}
+namespace sqlpp::keywords::update {
+    constexpr char const setStr[] = " SET ";
+    struct Set: Keyword<Set, setStr> {
+        using Keyword::operator,;
 
         Set& operator,(const expr::EqExpr &expr) {
-            sql.append(expr.sql).append(", ");
+            source->append(expr.sql);
+            return *this;
+        }
+
+        From& operator,(From&& token) { return token(source); };
+        Where& operator,(Where&& token) { return token(source); };
+    };
+
+
+    template<char const *str>
+    struct UpdateOr: Or<str> {
+        using Or<str>::operator,;
+
+        UpdateOr& operator,(const types::SQLTable &table) {
+            this->source->append(table.name);
             return *this;
         };
 
-        Where operator,(keywords::Where) { return Where(sql); }
+        Set& operator,(Set&& token) { return token(this->source); };
     };
 
-    struct SetIntermediate: types::Intermediate<Set, keywords::Set> {
-        using types::Intermediate<Set, keywords::Set>::Intermediate;
-        using types::Intermediate<Set, keywords::Set>::operator,;
-    };
 
-    struct Update: types::Keyword {
-        using Keyword::Keyword;
+    constexpr char const updateStr[] = "UPDATE ";
+    struct Update: Keyword<Update, updateStr> {
         using Keyword::operator,;
-        explicit Update(): Keyword("UPDATE ") {}
 
-        SetIntermediate operator,(const types::SQLTable &table) {
+        std::string sql;
+        Update(): Keyword<Update, updateStr>() { operator()(&sql); }
+
+        Update& operator,(const types::SQLTable &table) {
             sql.append(table.name);
-            return SetIntermediate{sql};
-        }
-    };
-
-    struct UpdateOr: types::Keyword {
-        using Keyword::operator,;
-        explicit UpdateOr(): Keyword("UPDATE OR ") {}
-
-        template<typename T>
-        Update operator,(T) {
-            if constexpr (std::is_same_v<T, keywords::Abort>)
-                sql.append("ABORT ");
-            else if constexpr (std::is_same_v<T, keywords::Fail>)
-                sql.append("FAIL ");
-            else if constexpr (std::is_same_v<T, keywords::Ignore>)
-                sql.append("IGNORE ");
-            else if constexpr (std::is_same_v<T, keywords::Replace>)
-                sql.append("REPLACE ");
-            else if constexpr (std::is_same_v<T, keywords::Rollback>)
-                sql.append("ROLLBACK ");
-            else
-                static_assert(traits::always_false<T>::value, "Unsuported keyword");
-            return Update{sql};
+            return *this;
         };
+
+        template<char const *str>
+        UpdateOr<str>& operator,(Or<str>&& token) { return (UpdateOr<str>&) token(source); };
+        Set& operator,(Set&& token) { return token(source); };
     };
 }
 

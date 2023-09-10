@@ -24,7 +24,6 @@ namespace sqlpp {
     };
 
     namespace types {
-        struct Runnable;
         struct SQLForeignKey;
         template<typename T> struct SQLCol;
 
@@ -37,7 +36,7 @@ namespace sqlpp {
     }
 
     namespace traits {
-        template<typename>
+        template<typename = void>
         struct always_false: std::false_type {};
 
         template<typename T>
