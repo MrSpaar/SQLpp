@@ -12,7 +12,7 @@
 template<typename T>
 struct sqlpp::types::SQLCol {
     std::string name;
-    int flags = 0;
+    char flags = 0;
 
     explicit SQLCol(SQLColList &cols, const std::string& colName, int flags) {
         this->name = colName;
@@ -79,41 +79,42 @@ struct sqlpp::types::SQLCol {
     expr::CompareExpr operator%(const V &item) { return formatArithOp("%", item); }
 
     template<typename V>
-    expr::ChainedExpr formatLogicOp(const std::string &op, const V &item) const {
+    expr::CondExpr formatLogicOp(const std::string &op, const V &item) const {
         if constexpr (traits::is_sql_col<V>::value)
-            return expr::ChainedExpr{name + " " + op + " " + item.name };
+            return expr::CondExpr{name + " " + op + " " + item.name };
         else if constexpr (!std::is_same_v<T, V> && !(std::is_same_v<T, TEXT> && std::is_convertible_v<V, TEXT>))
             static_assert(traits::always_false<V>::value, "Invalid comparison");
         else if constexpr (std::is_convertible_v<V, TEXT>)
-            return expr::ChainedExpr{name + " " + op + " '" + item + "'" };
+            return expr::CondExpr{name + " " + op + " '" + item + "'" };
         else if constexpr (std::is_same_v<V, BLOB>)
-            return expr::ChainedExpr{name + " " + op + " '" + std::string(item.begin(), item.end()) + "'" };
+            return expr::CondExpr{name + " " + op + " '" + std::string(item.begin(), item.end()) + "'" };
         else
-            return expr::ChainedExpr{name + " " + op + " " + std::to_string(item) };
+            return expr::CondExpr{name + " " + op + " " + std::to_string(item) };
     }
 
     template<typename V>
-    expr::ChainedExpr operator<(const V &value) const { return formatLogicOp("<", value); }
+    expr::CondExpr operator<(const V &value) const { return formatLogicOp("<", value); }
     template<typename V>
-    expr::ChainedExpr operator>(const V &value) const { return formatLogicOp(">", value); }
+    expr::CondExpr operator>(const V &value) const { return formatLogicOp(">", value); }
     template<typename V>
-    expr::ChainedExpr operator<=(const V &value) const { return formatLogicOp("<=", value); }
+    expr::CondExpr operator<=(const V &value) const { return formatLogicOp("<=", value); }
     template<typename V>
-    expr::ChainedExpr operator>=(const V &value) const { return formatLogicOp(">=", value); }
+    expr::CondExpr operator>=(const V &value) const { return formatLogicOp(">=", value); }
     template<typename V>
-    expr::ChainedExpr operator!=(const V &value) const { return formatLogicOp("!=", value); }
+    expr::CondExpr operator!=(const V &value) const { return formatLogicOp("!=", value); }
     template<typename V>
-    expr::ChainedExpr operator==(const V &value) const { return formatLogicOp("==", value); }
-    expr::ChainedExpr operator^(const std::string & value) const { return formatLogicOp("LIKE", value); }
+    expr::CondExpr operator==(const V &value) const { return formatLogicOp("==", value); }
 
-    expr::ChainedExpr between(const T& min, const T& max) const {
+    expr::CondExpr operator%=(const std::string & value) const { return formatLogicOp("LIKE", value); }
+
+    expr::CondExpr between(const T& min, const T& max) const {
         if constexpr (std::is_same_v<T, TEXT>)
-            return expr::ChainedExpr{name + " BETWEEN '" + min + "' AND '" + max + "'" };
+            return expr::CondExpr{name + " BETWEEN '" + min + "' AND '" + max + "'" };
         else
-            return expr::ChainedExpr{name + " BETWEEN " + std::to_string(min) + " AND " + std::to_string(max) };
+            return expr::CondExpr{name + " BETWEEN " + std::to_string(min) + " AND " + std::to_string(max) };
     }
 
-    expr::ChainedExpr in(std::initializer_list<T> values) const {
+    expr::CondExpr in(std::initializer_list<T> values) const {
         std::string res = " IN (";
 
         for (const T &value : values) {
@@ -122,7 +123,7 @@ struct sqlpp::types::SQLCol {
         }
 
         res.pop_back(); res.pop_back();
-        return expr::ChainedExpr{name + res + ")"};
+        return expr::CondExpr{name + res + ")"};
     }
 };
 

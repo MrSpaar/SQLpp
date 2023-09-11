@@ -14,7 +14,7 @@
 #define COL(colName, type, flags)\
     static sqlpp::types::SQLCol<type> colName(SQL.columns, #colName, flags);
 #define FOREIGN_KEY(col1, table, col2)\
-    static sqlp::types::SQLForeignKey fk##table##col2(TABLE.foreignKeys, col1.name, table::SQL.name, table::col2.name);
+    static sqlp::types::SQLForeignKey fk##table##col2(SQL.foreignKeys, col1.name, table::SQL.name, table::col2.name);
 
 #define USING(ns)               using namespace ns
 #define CREATE_TABLE(table, db)  db.rawQuery(table::TABLE.serialize())
@@ -25,13 +25,8 @@
 } using namespace table;
 
 
-#define SEP                         ,
-#define COUT                        SEP sqlpp::keywords::cout
-
-#define AND                         &&
-#define OR                          ||
-#define AS                          |=
-#define LIKE                        ^
+#define AS                         |=
+#define LIKE                       %=
 #define IN(...)                    .in({__VA_ARGS__})
 #define BETWEEN(min, max)          .between(min, max)
 
@@ -75,36 +70,42 @@
 #define LOG(...) CHOOSE_LOG(__VA_ARGS__, LOGB, LOG10_2)(__VA_ARGS__)
 
 
-#define FROM                       SEP sqlpp::keywords::From() SEP
-#define WHERE                      SEP sqlpp::keywords::Where() SEP
-#define LIMIT                      SEP sqlpp::keywords::Limit() SEP
-#define ORDER_BY                   SEP sqlpp::keywords::OrderBy() SEP
+#define AND                        ).and_(
+#define OR                         ).or_(
+#define FROM                       ).from(
+#define WHERE                      ).where(
+#define LIMIT                      ).limit(
+#define OFFSET                     ).offset(
+#define ORDER                      ).order(
+#define BY                         ).by(
 #define ASC                        .asc()
 #define DESC                       .desc()
 
-#define SELECT                     sqlpp::keywords::select::Select() SEP
-#define LEFT_JOIN                  SEP sqlpp::keywords::select::Join<sqlpp::keywords::select::leftJoinStr>() SEP
-#define INNER_JOIN                 SEP sqlpp::keywords::select::Join<sqlpp::keywords::select::innerJoinStr>() SEP
-#define CROSS_JOIN                 SEP sqlpp::keywords::select::Join<sqlpp::keywords::select::crossJoinStr>() SEP
-#define ON                         SEP sqlpp::keywords::select::On() SEP
-#define GROUP_BY                   SEP sqlpp::keywords::select::GroupBy() SEP
-#define HAVING                     SEP sqlpp::keywords::select::Having() SEP
+#define SELECT                     sqlpp::keywords::select::Select(
+#define LEFT_JOIN                  ).join("LEFT JOIN ",
+#define INNER_JOIN                 ).join("INNER JOIN ",
+#define CROSS_JOIN                 ).crossJoin(
+#define ON                         ).on(
+#define GROUP                      ).group(
+#define HAVING                     ).having(
 
-#define DELETE                     sqlpp::keywords::del::Delete()
+#define DELETE                     sqlpp::keywords::del::Delete(
 
-#define OR_ABORT                   sqlpp::keywords::Or<sqlpp::keywords::abortStr>() SEP
-#define OR_FAIL                    sqlpp::keywords::Or<sqlpp::keywords::failStr>() SEP
-#define OR_IGNORE                  sqlpp::keywords::Or<sqlpp::keywords::ignoreStr>() SEP
-#define OR_REPLACE                 sqlpp::keywords::Or<sqlpp::keywords::replaceStr>() SEP
-#define OR_ROLLBACK                sqlpp::keywords::Or<sqlpp::keywords::rollbackStr>() SEP
+#define ABORT                      "ABORT ").next(
+#define FAIL                       "FAIL ").next(
+#define IGNORE                     "IGNORE ").next(
+#define REPLACE                    "REPLACE ").next(
+#define ROLLBACK                   "ROLLBACK ").next(
 
-#define UPDATE                     sqlpp::keywords::update::Update() SEP
-#define SET                        SEP sqlpp::keywords::update::Set() SEP
+#define UPDATE                     sqlpp::keywords::update::Update(
+#define SET                        ).set(
 
-#define INSERT                     sqlpp::keywords::insert::Insert() SEP
-#define INTO                       sqlpp::keywords::insert::Into() SEP
-#define VALUES                     SEP sqlpp::keywords::insert::Values()
-#define DEFAULT_VALUES             SEP sqlpp::keywords::insert::DefaultValues()
+#define INSERT                     sqlpp::keywords::insert::Insert(
+#define INTO                       ).into(
+#define VALUES(...)                ).values(__VA_ARGS__
+#define DEFAULT_VALUES             ).defaultValues(
+
+#define COUT                       ).cout()
 
 
 #endif //SQLPP_MACROS_H

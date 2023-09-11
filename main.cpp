@@ -14,9 +14,26 @@ TABLE(User,
 
 
 int main() {
-    SELECT id, name, email FROM User::SQL LEFT_JOIN User::SQL ON name == email COUT;
-    DELETE FROM User::SQL WHERE id > 0 ORDER_BY id ASC LIMIT 10 COUT;
-    UPDATE OR_IGNORE User::SQL SET name = "John" WHERE id > 0 COUT;
+    SELECT name, id, email
+    FROM User::SQL
+    WHERE id > 5 AND name LIKE "John"
+    GROUP BY name, email
+    HAVING id > 10
+    ORDER BY id ASC, name DESC
+    LIMIT 10, 20 COUT;
+
+    DELETE FROM User::SQL
+    WHERE id > 5 COUT;
+
+    UPDATE OR IGNORE User::SQL
+    SET name = "John", email = "john.doe@mail.com"
+    WHERE id > 5 COUT;
+
+    INSERT INTO User::SQL(id, name, email)
+    DEFAULT_VALUES COUT;
+
+    INSERT OR IGNORE INTO User::SQL(name, email)
+    VALUES("John", "john.doe@mail.com") COUT;
 
     return 0;
 }

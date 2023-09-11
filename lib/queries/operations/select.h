@@ -9,124 +9,238 @@
 
 
 namespace sqlpp::keywords::select {
-    constexpr char const havingStr[] = " HAVING ";
-    struct Having: Keyword<Having, havingStr> {
-        using Keyword::operator,;
+    struct Offset: Keyword {
+        inline Offset& morph(int offset) {
+            source->append(" OFFSET ").append(std::to_string(offset));
+            return *this;
+        }
+    };
 
-        Having& operator,(const expr::ChainedExpr &expr) {
-            source->append(expr.sql);
+    struct Limit: Keyword {
+        inline Limit& morph(int limit) {
+            source->append(" LIMIT ").append(std::to_string(limit));
             return *this;
         }
 
-        OrderBy& operator,(OrderBy&& token) { return token(source); };
-        Limit& operator,(Limit&& token) { return token(source); };
+        inline Offset& morph(int limit, int offset) {
+            return morph(limit).offset(offset);
+        }
+
+        inline Offset& offset(int offset) {
+            return ((Offset*) this)->morph(offset);
+        }
     };
 
+    struct OrderBy: Keyword {
+        template<typename... Items>
+        inline OrderBy& morph(const Items&... items) {
+            if constexpr ((!std::is_same_v<Items, expr::OrderExpr> || ...))
+                static_assert(
+                        traits::always_false<Items...>::value,
+                        "ORDER BY only accepts SQL columns and order expressions"
+                );
 
-    constexpr char const groupByStr[] = " GROUP BY ";
-    struct GroupBy: Keyword<GroupBy, groupByStr> {
-        using Keyword::operator,;
+            (source->append(items.sql).append(", "), ...);
+            source->pop_back(); source->pop_back();
 
-        template<typename T>
-        GroupBy& operator,(const types::SQLCol<T> &col) {
-            source->append(col.name).append(", ");
             return *this;
         }
 
-        Having& operator,(Having&& token) { return token(source); }
-        OrderBy& operator,(OrderBy&& token) { return token(source); }
-        Limit& operator,(Limit&& token) { return token(source);  }
+        inline Limit& limit(int limit) {
+            return ((Limit*) this)->morph(limit);
+        }
+
+        inline Offset& limit(int limit, int offset) {
+            return ((Limit*) this)->morph(limit, offset);
+        }
     };
 
+    struct Order: Keyword {
+        inline Order& morph() {
+            source->append(" ORDER");
+            return *this;
+        }
 
-    struct SWhere: Where {
-        using Where::operator,;
+        template<typename... Items>
+        inline OrderBy& by(const Items&... items) {
+            source->append(" BY ");
+            return ((OrderBy*) this)->morph(std::forward<const Items&>(items)...);
+        }
+    };
 
-        SWhere& operator,(const expr::ChainedExpr &expr) override {
+    struct Having: Keyword {
+        inline Having& morph(const expr::CondExpr &expr) {
+            source->append(" HAVING ").append(expr.sql);
+            return *this;
+        }
+
+        inline Order& order() {
+            return ((Order*) this)->morph();
+        }
+
+        inline Limit& limit(int limit) {
+            return ((Limit*) this)->morph(limit);
+        }
+
+        inline Offset& limit(int limit, int offset) {
+            return ((Limit*) this)->morph(limit, offset);
+        }
+    };
+
+    struct GroupBy: Keyword {
+        template<typename... Items>
+        inline GroupBy& morph(const Items&... items) {
+            if constexpr ((!traits::is_sql_col<Items>::value || ...))
+                static_assert(
+                        traits::always_false<Items...>::value,
+                        "GROUP BY only accepts SQL columns"
+                );
+
+            (source->append(items.name).append(", "), ...);
+            source->pop_back(); source->pop_back();
+
+            return *this;
+        }
+
+        inline Having& having(const expr::CondExpr &expr) {
+            return ((Having*) this)->morph(expr);
+        }
+
+        inline Order& order() {
+            return ((Order*) this)->morph();
+        }
+
+        inline Limit& limit(int limit) {
+            return ((Limit*) this)->morph(limit);
+        }
+
+        inline Offset& limit(int limit, int offset) {
+            return ((Limit*) this)->morph(limit, offset);
+        }
+    };
+
+    struct Group: Keyword {
+        inline Group& morph() {
+            source->append(" GROUP");
+            return *this;
+        }
+
+        template<typename... Items>
+        inline GroupBy& by(const Items&... items) {
+            source->append(" BY ");
+            return ((GroupBy*) this)->morph(std::forward<const Items&>(items)...);
+        }
+    };
+
+    struct Where: Keyword {
+        inline Where& morph(const expr::CondExpr &expr) {
             source->append(" WHERE ").append(expr.sql);
             return *this;
         }
 
-        GroupBy& operator,(GroupBy&& token) { return token(source); }
-        Having& operator,(Having&& token) { return token(source); }
-    };
-
-
-    constexpr char const onStr[] = " ON ";
-    struct On: Keyword<On, onStr> {
-        using Keyword::operator,;
-
-        On& operator,(const expr::ChainedExpr &expr) {
-            source->append(expr.sql);
+        inline Where& and_(const expr::CondExpr &expr) {
+            source->append(" AND ").append(expr.sql);
             return *this;
         }
 
-        SWhere& operator,(Where&& token) { return (SWhere&) token(source); }
-        GroupBy& operator,(GroupBy&& token) { return token(source); }
-        Having& operator,(Having&& token) { return token(source); }
-        OrderBy& operator,(OrderBy&& token) { return token(source); }
-        Limit& operator,(Limit&& token) { return token(source); }
-    } on;
-
-    constexpr char const innerJoinStr[] = " INNER JOIN ";
-    constexpr char const leftJoinStr[] = " LEFT JOIN ";
-    constexpr char const crossJoinStr[] = " CROSS JOIN ";
-
-    template<char const *str>
-    struct Join: Keyword<Join<str>, str> {
-        using Keyword<Join<str>, str>::operator,;
-
-        Join& operator,(const types::SQLTable &table) {
-            this->source->append(table.name);
-            return *this;
-        };
-
-        On& operator,(On&& token) { return token(this->source); };
-    };
-
-
-    struct SFrom: From {
-        using From::operator,;
-
-        SFrom& operator,(const types::SQLTable &table) override {
-            source->append(table.name);
+        inline Where& or_(const expr::CondExpr &expr) {
+            source->append(" OR ").append(expr.sql);
             return *this;
         }
 
-        template<char const *str>
-        Join<str>& operator,(Join<str>&& token) { return token(source); };
-        SWhere& operator,(Where&& token) override { return (SWhere&) token(source); };
-        GroupBy& operator,(GroupBy&& token) { return token(source); };
-        Having& operator,(Having&& token) { return token(source); };
-        OrderBy& operator,(OrderBy&& token) { return token(source); };
-        Limit& operator,(Limit&& token) { return token(source); };
+        inline Group& group() {
+            return ((Group*) this)->morph();
+        }
+
+        inline Having& having(const expr::CondExpr &expr) {
+            return ((Having*) this)->morph(expr);
+        }
+
+        inline Order& order() {
+            return ((Order*) this)->morph();
+        }
+
+        inline Limit& limit(int limit) {
+            return ((Limit*) this)->morph(limit);
+        }
+
+        inline Offset& limit(int limit, int offset) {
+            return ((Limit*) this)->morph(limit, offset);
+        }
     };
 
+    struct From: Keyword {
+        inline Where& where(const expr::CondExpr &expr) {
+            return ((Where*) this)->morph(expr);
+        }
 
-    constexpr char const selectStr[] = "SELECT ";
-    struct Select: Keyword<Select, selectStr> {
-        using Keyword::operator,;
+        inline Group& group() {
+            return ((Group*) this)->morph();
+        }
 
-        std::string sql;
-        Select(): Keyword<Select, selectStr>() { operator()(&sql); }
+        inline Order& order() {
+            return ((Order*) this)->morph();
+        }
+
+        inline Limit& limit(int limit) {
+            return ((Limit*) this)->morph(limit);
+        }
+
+        inline Offset& limit(int limit, int offset) {
+            return ((Limit*) this)->morph(limit, offset);
+        }
+    };
+
+    struct Join: From {
+        inline Join& on(const expr::CondExpr &expr) {
+            source->append(" ON ").append(expr.sql);
+            return *this;
+        }
+
+        inline Join& and_(const expr::CondExpr &expr) {
+            source->append(" AND ").append(expr.sql);
+            return *this;
+        }
+
+        inline Join& or_(const expr::CondExpr &expr) {
+            source->append(" OR ").append(expr.sql);
+            return *this;
+        }
+    };
+
+    struct FromJoin: From {
+        inline FromJoin& morph(const types::SQLTable &table) {
+            source->append(" FROM ").append(table.name);
+            return *this;
+        }
+
+        inline From& crossJoin(const types::SQLTable &table) {
+            source->append(" CROSS JOIN ").append(table.name);
+            return (From&) *this;
+        }
+
+        inline Join& join(const std::string &join, const types::SQLTable &table) {
+            source->append(join).append(table.name);
+            return (Join&) *this;
+        }
+    };
+
+    struct Select: Query {
+        template<typename... Items>
+        explicit Select(const Items&... items) {
+            sql.append("SELECT ");
+            (append(items), ...);
+        }
 
         template<typename T>
-        Select& operator,(const types::SQLCol<T> &col) {
-            source->append(col.name).append(", ");
-            return *this;
-        }
+        inline void append(const types::SQLCol<T> &col) { sql.append(col.name).append(", "); }
+        inline void append(const expr::AsExpr &expr) { sql.append(expr.sql).append(", "); }
+        inline void append(const expr::AggregateExpr &expr) { sql.append(expr.sql).append(", "); }
 
-        Select& operator,(const expr::AsExpr &expr) {
-            source->append(expr.sql).append(", ");
-            return *this;
-        }
-
-        Select& operator,(const expr::AggregateExpr &expr) {
-            source->append(expr.sql).append(", ");
-            return *this;
-        }
-
-        SFrom& operator,(From&& token) { return (SFrom&) token(source); };
+        inline FromJoin& from(const types::SQLTable &table) {
+            sql.pop_back(); sql.pop_back();
+            return ((FromJoin*) this)->morph(table);
+        };
     };
 }
 

@@ -14,17 +14,8 @@ namespace sqlpp::expr {
         explicit Expr(std::string sql): sql(std::move(sql)) {};
     };
 
-    template<char const *str>
-    struct OrExpr {};
-
-    struct EqExpr: Expr {
-        using Expr::Expr;
-
-        EqExpr& operator,(const EqExpr &other) {
-            this->sql.append(", ").append(other.sql);
-            return *this;
-        }
-    };
+    struct EqExpr: Expr { using Expr::Expr; };
+    struct CondExpr: Expr { using Expr::Expr; };
 
     struct AsExpr: Expr {
         explicit AsExpr(const std::string &colName, const std::string &alias): Expr(colName) {
@@ -50,29 +41,15 @@ namespace sqlpp::expr {
 
     template<typename... Columns>
     struct TableExpr: Expr {
-        explicit TableExpr(const std::string &tableName, Columns&&... cols): Expr(tableName + "(") {
+        explicit TableExpr(const std::string &tableName, const Columns&... cols): Expr(tableName + "(") {
             (this->sql.append(cols.name).append(", "), ...);
             this->sql.pop_back(); this->sql.pop_back();
             this->sql.append(")");
         }
     };
 
-    struct ChainedExpr: Expr {
+    struct CompareExpr: Expr {
         using Expr::Expr;
-
-        ChainedExpr& operator&&(const ChainedExpr &other) {
-            this->sql.append(" AND ").append(other.sql);
-            return *this;
-        }
-
-        ChainedExpr& operator||(const ChainedExpr &other) {
-            this->sql.append(" OR ").append(other.sql);
-            return *this;
-        }
-    };
-
-    struct CompareExpr: ChainedExpr {
-        using ChainedExpr::ChainedExpr;
 
         AsExpr operator|=(const std::string &alias) const { return AsExpr{ this->sql, alias }; }
         template<typename T>
@@ -94,17 +71,17 @@ namespace sqlpp::expr {
         }
 
         template<typename T>
-        ChainedExpr operator==(const T &other) const { return format<ChainedExpr>("==", other); }
+        CondExpr operator==(const T &other) const { return format<CondExpr>("==", other); }
         template<typename T>
-        ChainedExpr operator!=(const T &other) const { return format<ChainedExpr>("!=", other); }
+        CondExpr operator!=(const T &other) const { return format<CondExpr>("!=", other); }
         template<typename T>
-        ChainedExpr operator<(const T &other) const { return format<ChainedExpr>("<", other); }
+        CondExpr operator<(const T &other) const { return format<CondExpr>("<", other); }
         template<typename T>
-        ChainedExpr operator>(const T &other) const { return format<ChainedExpr>(">", other); }
+        CondExpr operator>(const T &other) const { return format<CondExpr>(">", other); }
         template<typename T>
-        ChainedExpr operator<=(const T &other) const { return format<ChainedExpr>("<=", other); }
+        CondExpr operator<=(const T &other) const { return format<CondExpr>("<=", other); }
         template<typename T>
-        ChainedExpr operator>=(const T &other) const { return format<ChainedExpr>(">=", other); }
+        CondExpr operator>=(const T &other) const { return format<CondExpr>(">=", other); }
 
         template<typename T>
         CompareExpr operator+(const T &other) const { return format<CompareExpr>("+", other); }

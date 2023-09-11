@@ -9,14 +9,40 @@
 
 
 namespace sqlpp::keywords::del {
-    constexpr char const deleteStr[] = "DELETE";
-    struct Delete: Keyword<Delete, deleteStr> {
-        using Keyword::operator,;
+    struct Where: Keyword {
+        inline Where& morph(const expr::CondExpr &expr) {
+            source->append(" WHERE ").append(expr.sql);
+            return *this;
+        }
 
-        std::string sql;
-        Delete(): Keyword<Delete, deleteStr>() { operator()(&sql); }
+        inline Where& and_(const expr::CondExpr &expr) {
+            source->append(" AND ").append(expr.sql);
+            return *this;
+        }
 
-        From& operator,(From&& token) { return token(source); };
+        inline Where& or_(const expr::CondExpr &expr) {
+            source->append(" OR ").append(expr.sql);
+            return *this;
+        }
+    };
+
+    struct From: Keyword {
+        inline From& morph(const types::SQLTable &table) {
+            source->append("FROM ").append(table.name);
+            return *this;
+        }
+
+        inline Where& where(const expr::CondExpr &expr) {
+            return ((Where*) this)->morph(expr);
+        }
+    };
+
+    struct Delete: Query {
+        Delete(): Query() { sql.append("DELETE "); }
+
+        inline From& from(const types::SQLTable &table) {
+            return ((From*) this)->morph(table);
+        }
     };
 }
 
