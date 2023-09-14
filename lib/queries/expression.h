@@ -18,7 +18,7 @@ namespace sqlpp::expr {
     struct CondExpr: Expr { using Expr::Expr; };
 
     struct AsExpr: Expr {
-        explicit AsExpr(const std::string &colName, const std::string &alias): Expr(colName) {
+        AsExpr(const std::string &colName, const std::string &alias): Expr(colName) {
             this->sql.append(" AS '").append(alias).append("'");
         }
     };

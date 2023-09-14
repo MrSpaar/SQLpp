@@ -9,54 +9,48 @@
 
 
 namespace sqlpp::keywords::select {
-    struct Offset: Keyword {
+    struct Offset: SubQuery {
         inline Offset& morph(int offset) {
             source->append(" OFFSET ").append(std::to_string(offset));
             return *this;
         }
     };
 
-    struct Limit: Keyword {
+    struct Limit: SubQuery {
         inline Limit& morph(int limit) {
             source->append(" LIMIT ").append(std::to_string(limit));
             return *this;
         }
 
-        inline Offset& morph(int limit, int offset) {
-            return morph(limit).offset(offset);
-        }
-
-        inline Offset& offset(int offset) {
-            return ((Offset*) this)->morph(offset);
-        }
+        inline Offset& morph(int limit, int offset) { return morph(limit).offset(offset); }
+        inline Offset& offset(int offset) { return ((Offset*) this)->morph(offset); }
     };
 
-    struct OrderBy: Keyword {
+    struct OrderBy: SubQuery {
         template<typename... Items>
         inline OrderBy& morph(const Items&... items) {
-            if constexpr ((!std::is_same_v<Items, expr::OrderExpr> || ...))
+            if constexpr (((!traits::is_sql_col<Items>::value && !std::is_same_v<Items, expr::OrderExpr>) || ...))
                 static_assert(
                         traits::always_false<Items...>::value,
                         "ORDER BY only accepts SQL columns and order expressions"
                 );
 
-            (source->append(items.sql).append(", "), ...);
+            (append(items), ...);
             source->pop_back(); source->pop_back();
 
             return *this;
         }
 
-        inline Limit& limit(int limit) {
-            return ((Limit*) this)->morph(limit);
-        }
+        template<typename ColType>
+        inline void append(const types::SQLCol<ColType> &col) { source->append(col.name).append(", "); }
+        inline void append(const expr::OrderExpr &expr) { source->append(expr.sql).append(", "); }
 
-        inline Offset& limit(int limit, int offset) {
-            return ((Limit*) this)->morph(limit, offset);
-        }
+        inline Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
+        inline Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
     };
 
     struct Order: Keyword {
-        inline Order& morph() {
+        inline Order& morph() override {
             source->append(" ORDER");
             return *this;
         }
@@ -68,26 +62,18 @@ namespace sqlpp::keywords::select {
         }
     };
 
-    struct Having: Keyword {
+    struct Having: SubQuery {
         inline Having& morph(const expr::CondExpr &expr) {
             source->append(" HAVING ").append(expr.sql);
             return *this;
         }
 
-        inline Order& order() {
-            return ((Order*) this)->morph();
-        }
-
-        inline Limit& limit(int limit) {
-            return ((Limit*) this)->morph(limit);
-        }
-
-        inline Offset& limit(int limit, int offset) {
-            return ((Limit*) this)->morph(limit, offset);
-        }
+        inline Order& order() { return ((Order*) this)->morph(); }
+        inline Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
+        inline Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
     };
 
-    struct GroupBy: Keyword {
+    struct GroupBy: SubQuery {
         template<typename... Items>
         inline GroupBy& morph(const Items&... items) {
             if constexpr ((!traits::is_sql_col<Items>::value || ...))
@@ -102,25 +88,14 @@ namespace sqlpp::keywords::select {
             return *this;
         }
 
-        inline Having& having(const expr::CondExpr &expr) {
-            return ((Having*) this)->morph(expr);
-        }
-
-        inline Order& order() {
-            return ((Order*) this)->morph();
-        }
-
-        inline Limit& limit(int limit) {
-            return ((Limit*) this)->morph(limit);
-        }
-
-        inline Offset& limit(int limit, int offset) {
-            return ((Limit*) this)->morph(limit, offset);
-        }
+        inline Having& having(const expr::CondExpr &expr) { return ((Having*) this)->morph(expr); }
+        inline Order& order() { return ((Order*) this)->morph(); }
+        inline Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
+        inline Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
     };
 
     struct Group: Keyword {
-        inline Group& morph() {
+        inline Group& morph() override {
             source->append(" GROUP");
             return *this;
         }
@@ -132,7 +107,7 @@ namespace sqlpp::keywords::select {
         }
     };
 
-    struct Where: Keyword {
+    struct Where: SubQuery {
         inline Where& morph(const expr::CondExpr &expr) {
             source->append(" WHERE ").append(expr.sql);
             return *this;
@@ -148,81 +123,75 @@ namespace sqlpp::keywords::select {
             return *this;
         }
 
-        inline Group& group() {
-            return ((Group*) this)->morph();
-        }
-
-        inline Having& having(const expr::CondExpr &expr) {
-            return ((Having*) this)->morph(expr);
-        }
-
-        inline Order& order() {
-            return ((Order*) this)->morph();
-        }
-
-        inline Limit& limit(int limit) {
-            return ((Limit*) this)->morph(limit);
-        }
-
-        inline Offset& limit(int limit, int offset) {
-            return ((Limit*) this)->morph(limit, offset);
-        }
+        inline Group& group() { return ((Group*) this)->morph(); }
+        inline Having& having(const expr::CondExpr &expr) { return ((Having*) this)->morph(expr); }
+        inline Order& order() { return ((Order*) this)->morph(); }
+        inline Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
+        inline Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
     };
 
-    struct From: Keyword {
-        inline Where& where(const expr::CondExpr &expr) {
-            return ((Where*) this)->morph(expr);
-        }
-
-        inline Group& group() {
-            return ((Group*) this)->morph();
-        }
-
-        inline Order& order() {
-            return ((Order*) this)->morph();
-        }
-
-        inline Limit& limit(int limit) {
-            return ((Limit*) this)->morph(limit);
-        }
-
-        inline Offset& limit(int limit, int offset) {
-            return ((Limit*) this)->morph(limit, offset);
-        }
-    };
-
-    struct Join: From {
-        inline Join& on(const expr::CondExpr &expr) {
+    struct On: SubQuery {
+        inline On& morph(const expr::CondExpr &expr) {
             source->append(" ON ").append(expr.sql);
             return *this;
         }
 
-        inline Join& and_(const expr::CondExpr &expr) {
+        inline On& and_(const expr::CondExpr &expr) {
             source->append(" AND ").append(expr.sql);
             return *this;
         }
 
-        inline Join& or_(const expr::CondExpr &expr) {
+        inline On& or_(const expr::CondExpr &expr) {
             source->append(" OR ").append(expr.sql);
             return *this;
         }
+
+        inline Where& where(const expr::CondExpr &expr) { return ((Where*) this)->morph(expr); }
+        inline Group& group() { return ((Group*) this)->morph(); }
+        inline Order& order() { return ((Order*) this)->morph(); }
+        inline Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
+        inline Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
     };
 
-    struct FromJoin: From {
-        inline FromJoin& morph(const types::SQLTable &table) {
+    struct Join: Keyword {
+        inline Join& morph(const types::SQLTable &table) {
+            source->append(" JOIN ").append(table.name);
+            return *this;
+        }
+
+        inline On& on(const expr::CondExpr &expr) {
+            return ((On*) this)->morph(expr);
+        }
+    };
+
+    struct JoinOp: Keyword {
+        inline JoinOp& morph(const std::string &joinOp) {
+            source->append(joinOp);
+            return *this;
+        }
+
+        inline Join& join(const types::SQLTable &table) {
+            return ((Join*) this)->morph(table);
+        }
+    };
+
+    struct From: SubQuery {
+        inline From& morph(const types::SQLTable &table) {
             source->append(" FROM ").append(table.name);
             return *this;
         }
 
-        inline From& crossJoin(const types::SQLTable &table) {
-            source->append(" CROSS JOIN ").append(table.name);
-            return (From&) *this;
+        inline From& morph(const SubQuery &subQuery) {
+            source->append(" FROM (").append(*subQuery.source).append(")");
+            return *this;
         }
 
-        inline Join& join(const std::string &join, const types::SQLTable &table) {
-            source->append(join).append(table.name);
-            return (Join&) *this;
-        }
+        inline JoinOp& joinOp(const std::string &joinOp) { return ((JoinOp*) this)->morph(joinOp); }
+        inline Where& where(const expr::CondExpr &expr) { return ((Where*) this)->morph(expr); }
+        inline Group& group() { return ((Group*) this)->morph(); }
+        inline Order& order() { return ((Order*) this)->morph(); }
+        inline Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
+        inline Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
     };
 
     struct Select: Query {
@@ -236,10 +205,16 @@ namespace sqlpp::keywords::select {
         inline void append(const types::SQLCol<T> &col) { sql.append(col.name).append(", "); }
         inline void append(const expr::AsExpr &expr) { sql.append(expr.sql).append(", "); }
         inline void append(const expr::AggregateExpr &expr) { sql.append(expr.sql).append(", "); }
+        inline void append(const SubQuery &subQuery) { sql.append("(").append(*subQuery.source).append("), "); }
 
-        inline FromJoin& from(const types::SQLTable &table) {
+        inline From& from(const types::SQLTable &table) {
             sql.pop_back(); sql.pop_back();
-            return ((FromJoin*) this)->morph(table);
+            return ((From*) this)->morph(table);
+        };
+
+        inline From& from(const SubQuery &subQuery) {
+            sql.pop_back(); sql.pop_back();
+            return ((From*) this)->morph(subQuery);
         };
     };
 }

@@ -12,8 +12,17 @@ namespace sqlpp::keywords {
     struct Keyword {
         std::string *source = nullptr;
 
-        void cout() const {
-            std::cout << *source << ";" << std::endl;
+        virtual Keyword& morph() { return *this; }
+        void cout() const { std::cout << *source << ";" << std::endl; }
+    };
+
+    struct SubQuery: Keyword {
+        SubQuery& operator|=(const std::string &alias) {
+            source->insert(0, "(")
+                  .append(") AS ")
+                  .append(alias);
+
+            return *this;
         }
     };
 

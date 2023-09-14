@@ -32,6 +32,11 @@ namespace sqlpp::keywords::update {
             return *this;
         }
 
+        inline From& morph(const SubQuery &subQuery) {
+            source->append(" FROM (").append(*subQuery.source).append(")");
+            return *this;
+        }
+
         inline Where& where(const expr::CondExpr &expr) {
             return ((Where*) this)->morph(expr);
         }
@@ -55,6 +60,10 @@ namespace sqlpp::keywords::update {
 
         inline From& from(const types::SQLTable &table) {
             return ((From*) this)->morph(table);
+        }
+
+        inline From& from(const SubQuery &subQuery) {
+            return ((From*) this)->morph(subQuery);
         }
 
         inline Where& where(const expr::CondExpr &expr) {

@@ -8,39 +8,43 @@
 #include "queries/base.h"
 
 namespace sqlpp::keywords::insert {
-    struct DefaultValues: Keyword {
-        inline DefaultValues& morph() {
+    struct Default: Keyword {
+        inline Default& morph() override {
             source->append(" DEFAULT VALUES");
             return *this;
+        }
+
+        inline Keyword& values() {
+            return ((Keyword*) this)->morph();
         }
     };
 
     template<typename... ValTypes>
     struct Values: Keyword {
-        static inline Values& morph(Keyword *kw, ValTypes... values) {
-            kw->source->append(" VALUES (");
-            append(kw, values...);
-            kw->source->append(")");
+        inline Values& morph(const ValTypes&... values) {
+            source->append(" VALUES (");
+            append(values...);
+            source->append(")");
 
-            return (Values &) *kw;
+            return *this;
         }
 
         template<typename ValType, typename... Vals>
-        static inline void append(Keyword *kw, ValType value, Vals... values) {
+        inline void append(const ValType& value, const Vals&... values) {
             if constexpr (std::is_convertible_v<ValType, std::string>)
-                kw->source->append("'").append(value).append("'");
+                source->append("'").append(value).append("'");
             else if constexpr (traits::is_sql_col<ValType>::value)
-                kw->source->append(value.name);
+                source->append(value.name);
             else
-                kw->source->append(std::to_string(value));
+                source->append(std::to_string(value));
 
-            kw->source->append(", ");
-            append(kw, values...);
+            source->append(", ");
+            append(std::forward<const Vals&>(values)...);
         }
 
-        static inline void append(Keyword *kw) {
-            kw->source->pop_back();
-            kw->source->pop_back();
+        inline void append() {
+            source->pop_back();
+            source->pop_back();
         }
     };
 
@@ -52,15 +56,15 @@ namespace sqlpp::keywords::insert {
         }
 
         template<typename... ValTypes>
-        inline Values<ValTypes...>& values(ValTypes... values) {
+        inline Values<ValTypes...>& values(const ValTypes&... values) {
             if constexpr ((!traits::is_matching_col_type<ColTypes, ValTypes>::value || ...))
                 static_assert(traits::always_false<ColTypes...>::value, "Column type mismatch");
 
-            return ((Values<ValTypes...>*) this)->morph(this, values...);
+            return ((Values<ValTypes...>*) this)->morph(std::forward<const ValTypes&>(values)...);
         }
 
-        inline DefaultValues& defaultValues() {
-            return ((DefaultValues*) this)->morph();
+        inline Default& default_() {
+            return ((Default*) this)->morph();
         }
     };
 

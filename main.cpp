@@ -7,33 +7,45 @@ using namespace sqlpp;
 
 
 TABLE(User,
-    COL(id, INTEGER, PRIMARY_KEY | AUTOINCREMENT)
+    COL(uid, INTEGER, PRIMARY_KEY | AUTOINCREMENT)
     COL(name, TEXT, NOT_NULL)
     COL(email, TEXT, UNIQUE)
 )
 
+TABLE(Test,
+    COL(tid, INTEGER, PRIMARY_KEY | AUTOINCREMENT)
+    COL(avatar_url, TEXT, NOT_NULL)
+
+    FOREIGN_KEY(tid, User, uid)
+)
+
 
 int main() {
-    SELECT name, id, email
+    SELECT COUNT(uid) AS "count", name, uid, SUB(
+        SELECT COUNT(tid)
+        FROM Test::SQL
+        WHERE uid == tid
+    ) AS "test_count"
     FROM User::SQL
-    WHERE id > 5 AND name LIKE "John"
+    LEFT JOIN Test::SQL ON uid == tid
+    WHERE name LIKE "John%"
     GROUP BY name, email
-    HAVING id > 10
-    ORDER BY id ASC, name DESC
+    HAVING uid > 10
+    ORDER BY uid, name DESC
     LIMIT 10, 20 COUT;
 
     DELETE FROM User::SQL
-    WHERE id > 5 COUT;
+    WHERE uid > 5 COUT;
 
     UPDATE OR IGNORE User::SQL
     SET name = "John", email = "john.doe@mail.com"
-    WHERE id > 5 COUT;
+    WHERE uid > 5 COUT;
 
-    INSERT INTO User::SQL(id, name, email)
-    DEFAULT_VALUES COUT;
+    INSERT INTO User::SQL(uid, name, email)
+    DEFAULT VALUES COUT;
 
     INSERT OR IGNORE INTO User::SQL(name, email)
-    VALUES("John", "john.doe@mail.com") COUT;
+    VALUES "John", "john.doe@mail.com" COUT;
 
     return 0;
 }

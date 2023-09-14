@@ -14,10 +14,7 @@
 #define COL(colName, type, flags)\
     static sqlpp::types::SQLCol<type> colName(SQL.columns, #colName, flags);
 #define FOREIGN_KEY(col1, table, col2)\
-    static sqlp::types::SQLForeignKey fk##table##col2(SQL.foreignKeys, col1.name, table::SQL.name, table::col2.name);
-
-#define USING(ns)               using namespace ns
-#define CREATE_TABLE(table, db)  db.rawQuery(table::TABLE.serialize())
+    static sqlpp::types::SQLForeignKey fk##table##col2(SQL.foreignKeys, col1.name, table::SQL.name, table::col2.name);
 
 #define TABLE(table, cols) namespace table {   \
     static sqlpp::types::SQLTable SQL(#table); \
@@ -25,6 +22,7 @@
 } using namespace table;
 
 
+#define SUB(...)                   __VA_ARGS__)
 #define AS                         |=
 #define LIKE                       %=
 #define IN(...)                    .in({__VA_ARGS__})
@@ -82,9 +80,10 @@
 #define DESC                       .desc()
 
 #define SELECT                     sqlpp::keywords::select::Select(
-#define LEFT_JOIN                  ).join("LEFT JOIN ",
-#define INNER_JOIN                 ).join("INNER JOIN ",
-#define CROSS_JOIN                 ).crossJoin(
+#define LEFT                       ).joinOp(" LEFT"
+#define INNER                      ).joinOp(" INNER"
+#define CROSS                      ).joinOp(" CROSS"
+#define JOIN                       ).join(
 #define ON                         ).on(
 #define GROUP                      ).group(
 #define HAVING                     ).having(
@@ -102,8 +101,8 @@
 
 #define INSERT                     sqlpp::keywords::insert::Insert(
 #define INTO                       ).into(
-#define VALUES(...)                ).values(__VA_ARGS__
-#define DEFAULT_VALUES             ).defaultValues(
+#define VALUES                     ).values(
+#define DEFAULT                    ).default_(
 
 #define COUT                       ).cout()
 
