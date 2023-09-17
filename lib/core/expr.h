@@ -73,30 +73,55 @@ namespace sqlpp::expr {
         }
 
         template<typename T>
-        ConditionExpr(const std::stringstream &other, const char *op, const T& value) {
-            sql << other.str() << " " << op << " " << add(value);
+        ConditionExpr& morph(const char *op, const T& value) {
+            sql << " " << op << " " << add(value);
+            return *this;
         }
     };
 
     struct NumericExpr: Expr {
-        template<typename V>
-        NumericExpr(const char *func, const V& item) {
+        template<typename T>
+        NumericExpr(const char *func, const T& item) {
             sql << func << "(" << add(item) << ")";
         }
 
-        template<typename V1, typename V2>
-        NumericExpr(const char *func, const V1& item1, const V2& item2) {
+        template<typename T1, typename T2>
+        NumericExpr(const char *func, const T1& item1, const T2& item2) {
             sql << func << "(" << add(item1) << ", " << add(item2) << ")";
         }
 
-        template<typename V>
-        NumericExpr(const char *colName, const char *op, const V& value) {
-            sql << colName << " " << op << " " << add(value);
+        template<typename T>
+        NumericExpr(const char *colName, const char *op, const T& item) {
+            sql << colName << " " << op << " " << add(item);
         }
 
         AsExpr operator|=(const char *alias) {
             return {&sql, alias};
         }
+
+        template<typename T>
+        ConditionExpr& operator==(const T& item) { return ((ConditionExpr*) this)->morph("=", item); }
+        template<typename T>
+        ConditionExpr& operator!=(const T& item) { return ((ConditionExpr*) this)->morph("!=", item); }
+        template<typename T>
+        ConditionExpr& operator<(const T& item) { return ((ConditionExpr*) this)->morph("<", item); }
+        template<typename T>
+        ConditionExpr& operator>(const T& item) { return ((ConditionExpr*) this)->morph(">", item); }
+        template<typename T>
+        ConditionExpr& operator<=(const T& item) { return ((ConditionExpr*) this)->morph("<=", item); }
+        template<typename T>
+        ConditionExpr& operator>=(const T& item) { return ((ConditionExpr*) this)->morph(">=", item); }
+
+        template<typename T>
+        NumericExpr& operator+(const T& item) { sql << " + " << add(item); return *this; }
+        template<typename T>
+        NumericExpr& operator-(const T& item) { sql << " - " << add(item); return *this; }
+        template<typename T>
+        NumericExpr& operator*(const T& item) { sql << " * " << add(item); return *this; }
+        template<typename T>
+        NumericExpr& operator/(const T& item) { sql << " / " << add(item); return *this; }
+        template<typename T>
+        NumericExpr& operator%(const T& item) { sql << " % " << add(item); return *this; }
     };
 }
 

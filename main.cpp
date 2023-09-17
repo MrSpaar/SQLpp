@@ -12,7 +12,7 @@ TABLE(user,
 
 
 int main() {
-    SELECT COUNT(id) AS "count", name FROM user WHERE id BETWEEN(1, 10) COUT;
+    SELECT COUNT(id), name FROM user WHERE id*2+1 > 10 COUT;
     INSERT INTO user (id, name) VALUES(1, "Hello") COUT;
 
     return 0;
