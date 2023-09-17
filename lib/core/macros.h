@@ -24,7 +24,7 @@
 #define AS                         |=
 #define LIKE                       %=
 #define IN(...)                    .in({__VA_ARGS__})
-#define BETWEEN(...)               .between(__VA_ARGS__)
+#define BETWEEN(x, y)              .between(x, y)
 
 #define COUNT(x)                   sqlpp::expr::NumericExpr("COUNT", x)
 #define SUM(x)                     sqlpp::expr::NumericExpr("SUM", x)

@@ -52,8 +52,10 @@ struct sqlpp::types::SQLCol {
     template<typename ValType>
     [[nodiscard]] expr::ConditionExpr operator>=(const ValType &value) const { return cond(">=", value); }
 
-    [[nodiscard]] expr::BetweenExpr<ColType> between(const ColType &lower) const {
-        return {name, lower};
+    [[nodiscard]] expr::ConditionExpr between(const ColType &lower, const ColType &upper) const {
+        expr::ConditionExpr expr;
+        expr.sql << name << " BETWEEN " << expr.add(lower) << " AND " << expr.add(upper);
+        return expr;
     }
 
     [[nodiscard]] expr::ConditionExpr in(const std::initializer_list<ColType> &values) const {

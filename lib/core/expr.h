@@ -16,6 +16,8 @@ namespace sqlpp::expr {
         const char* add(const T& item) {
             if constexpr (traits::is_sql_col_v<T>)
                 sql << item.name;
+            else if constexpr (std::is_base_of_v<Expr, T>)
+                sql << item.sql.str();
             else if constexpr (std::is_same_v<T, BLOB>)
                 sql << "X'" << item << "'";
             else if constexpr (std::is_convertible_v<T, std::string>)
@@ -62,47 +64,38 @@ namespace sqlpp::expr {
         }
     };
 
-    struct NumericExpr: Expr {
-        template<typename T>
-        NumericExpr(const char *func, const T& item) {
-            sql << func << "(" << add(item) << ")";
-        }
-
-        template<typename T1, typename T2>
-        NumericExpr(const char *func, const T1& item1, const T2& item2) {
-            sql << func << "(" << add(item1) << ", " << add(item2) << ")";
-        }
-
-        template<typename T>
-        NumericExpr(const char *colName, const char *op, const T& value) {
-            sql << colName << " " << op << " " << add(value);
-        }
-
-        AsExpr operator|=(const char *alias) {
-            return {&sql, alias};
-        }
-    };
-
     struct ConditionExpr: Expr {
         ConditionExpr() = default;
-        explicit ConditionExpr(std::stringstream &&sql): Expr{std::move(sql)} {}
 
         template<typename T>
         ConditionExpr(const char *colName, const char *op, const T& value) {
             sql << colName << " " << op << " " << add(value);
         }
+
+        template<typename T>
+        ConditionExpr(const std::stringstream &other, const char *op, const T& value) {
+            sql << other.str() << " " << op << " " << add(value);
+        }
     };
 
-    template<typename ItemType>
-    struct BetweenExpr: Expr {
-        BetweenExpr(const char *colName, const ItemType &min) {
-            sql << colName << " BETWEEN " << min;
+    struct NumericExpr: Expr {
+        template<typename V>
+        NumericExpr(const char *func, const V& item) {
+            sql << func << "(" << add(item) << ")";
         }
 
-        ConditionExpr and_(const ItemType &max) {
-            return ConditionExpr{
-                std::move(sql << " AND " << max)
-            };
+        template<typename V1, typename V2>
+        NumericExpr(const char *func, const V1& item1, const V2& item2) {
+            sql << func << "(" << add(item1) << ", " << add(item2) << ")";
+        }
+
+        template<typename V>
+        NumericExpr(const char *colName, const char *op, const V& value) {
+            sql << colName << " " << op << " " << add(value);
+        }
+
+        AsExpr operator|=(const char *alias) {
+            return {&sql, alias};
         }
     };
 }
