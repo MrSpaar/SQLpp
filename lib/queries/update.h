@@ -10,50 +10,46 @@
 
 namespace sqlpp::keywords::update {
     struct Where: Keyword {
-        inline Where& morph(const expr::CondExpr &expr) {
-            source->append(" WHERE ").append(expr.sql);
+        inline Where& morph(const expr::ConditionExpr &expr) {
+            *source << " WHERE " << expr.sql.str();
             return *this;
         }
 
-        inline Where& and_(const expr::CondExpr &expr) {
-            source->append(" AND ").append(expr.sql);
+        inline Where& and_(const expr::ConditionExpr &expr) {
+            *source << " AND " << expr.sql.str();
             return *this;
         }
 
-        inline Where& or_(const expr::CondExpr &expr) {
-            source->append(" OR ").append(expr.sql);
+        inline Where& or_(const expr::ConditionExpr &expr) {
+            *source << " OR " << expr.sql.str();
             return *this;
         }
     };
 
     struct From: Keyword {
         inline From& morph(const types::SQLTable &table) {
-            source->append(" FROM ").append(table.name);
+            *source << " FROM " << table.name;
             return *this;
         }
 
         inline From& morph(const SubQuery &subQuery) {
-            source->append(" FROM (").append(*subQuery.source).append(")");
+            *source << " FROM (" << subQuery.source->str() << ")";
             return *this;
         }
 
-        inline Where& where(const expr::CondExpr &expr) {
+        inline Where& where(const expr::ConditionExpr &expr) {
             return ((Where*) this)->morph(expr);
         }
     };
 
     struct Set: Keyword {
-        template<typename... Items>
-        inline Set& morph(const Items&... items) {
-            if constexpr ((!std::is_same_v<Items, expr::EqExpr> || ...))
-                static_assert(
-                        traits::always_false<Items...>::value,
-                        "SET only accepts \"col = val\" expressions"
-                );
+        template<typename Item, typename... Items>
+        inline Set& morph(const Item &item, const Items&... items) {
+            if constexpr ((!std::is_same_v<Items, expr::EqExpr> || ...) || !std::is_same_v<Item, expr::EqExpr>)
+                static_assert(traits::always_false_v, "SET only accepts \"col = val\" expressions");
 
-            source->append(" SET ");
-            ((source->append(items.sql).append(", ")), ...);
-            source->pop_back(); source->pop_back();
+            *source << " SET " << item.sql.str();
+            (..., (*source << ", " << items.sql));
 
             return *this;
         }
@@ -66,19 +62,19 @@ namespace sqlpp::keywords::update {
             return ((From*) this)->morph(subQuery);
         }
 
-        inline Where& where(const expr::CondExpr &expr) {
+        inline Where& where(const expr::ConditionExpr &expr) {
             return ((Where*) this)->morph(expr);
         }
     };
 
     struct Or: Keyword {
         inline Or& morph(const std::string &token) {
-            source->append("OR ").append(token);
+            *source << "OR " << token;
             return *this;
         }
 
         inline Or& next(const types::SQLTable &table) {
-            source->append(table.name);
+            *source << table.name;
             return *this;
         }
 
@@ -89,8 +85,8 @@ namespace sqlpp::keywords::update {
     };
 
     struct Update: Query {
-        Update(): Query() { source->append("UPDATE "); };
-        explicit Update(const types::SQLTable &table): Query() { source->append("UPDATE ").append(table.name); }
+        Update(): Query() { sql << "UPDATE "; };
+        explicit Update(const types::SQLTable &table): Query() { sql << "UPDATE " << table.name; }
 
         inline Or& or_(const std::string &token) {
             return ((Or*) this)->morph(token);

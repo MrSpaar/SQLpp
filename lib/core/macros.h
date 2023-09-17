@@ -5,64 +5,62 @@
 #ifndef SQLPP_MACROS_H
 #define SQLPP_MACROS_H
 
-#include "queries/operations/select.h"
-#include "queries/operations/insert.h"
-#include "queries/operations/update.h"
-#include "queries/operations/delete.h"
+#include "queries/select.h"
+#include "queries/insert.h"
+#include "queries/update.h"
+#include "queries/delete.h"
 
 
-#define COL(colName, type, flags)\
-    static sqlpp::types::SQLCol<type> colName(SQL.columns, #colName, flags);
-#define FOREIGN_KEY(col1, table, col2)\
-    static sqlpp::types::SQLForeignKey fk##table##col2(SQL.foreignKeys, col1.name, table::SQL.name, table::col2.name);
+#define COL(colName, type)\
+    static sqlpp::types::SQLCol<type> colName(#colName);
 
-#define TABLE(table, cols) namespace table {   \
-    static sqlpp::types::SQLTable SQL(#table); \
-    cols                                       \
-} using namespace table;
+#define TABLE(table, cols) namespace table##Table {\
+    static sqlpp::types::SQLTable table(#table);   \
+    cols                                           \
+} using namespace table##Table;
 
 
-#define SUB(...)                   __VA_ARGS__)
+#define S(...)                     __VA_ARGS__)
 #define AS                         |=
 #define LIKE                       %=
 #define IN(...)                    .in({__VA_ARGS__})
-#define BETWEEN(min, max)          .between(min, max)
+#define BETWEEN(...)               .between(__VA_ARGS__)
 
-#define COUNT(x)                   sqlpp::math::aggregateFunc("COUNT", x)
-#define SUM(x)                     sqlpp::math::aggregateFunc("SUM", x)
-#define AVG(x)                     sqlpp::math::aggregateFunc("AVG", x)
-#define MIN(x)                     sqlpp::math::aggregateFunc("MIN", x)
-#define MAX(x)                     sqlpp::math::aggregateFunc("MAX", x)
-#define COS(x)                     sqlpp::math::numericFunc("COS", x)
-#define COSH(x)                    sqlpp::math::numericFunc("COSH", x)
-#define ACOS(x)                    sqlpp::math::numericFunc("ACOS", x)
-#define ACOSH(x)                   sqlpp::math::numericFunc("ACOSH", x)
-#define SIN(x)                     sqlpp::math::numericFunc("SIN", x)
-#define SINH(x)                    sqlpp::math::numericFunc("SINH", x)
-#define ASIN(x)                    sqlpp::math::numericFunc("ASIN", x)
-#define ASINH(x)                   sqlpp::math::numericFunc("ASINH", x)
-#define TAN(x)                     sqlpp::math::numericFunc("TAN", x)
-#define TANH(x)                    sqlpp::math::numericFunc("TANH", x)
-#define ATAN(x)                    sqlpp::math::numericFunc("ATAN", x)
-#define ATANH(x)                   sqlpp::math::numericFunc("ATANH", x)
-#define DEGREES(x)                 sqlpp::math::numericFunc("DEGREES", x)
-#define RADIANS(x)                 sqlpp::math::numericFunc("RADIANS", x)
-#define CEIL(x)                    sqlpp::math::numericFunc("CEIL", x)
-#define CEILING(x)                 sqlpp::math::numericFunc("CEILING", x)
-#define FLOOR(x)                   sqlpp::math::numericFunc("FLOOR", x)
-#define TRUNC(x)                   sqlpp::math::numericFunc("TRUNC", x)
-#define EXP(x)                     sqlpp::math::numericFunc("EXP", x)
-#define SQRT(x)                    sqlpp::math::numericFunc("SQRT", x)
-#define LN(x)                      sqlpp::math::numericFunc("LN", x)
-#define LOG2(x)                    sqlpp::math::numericFunc("LOG2", x)
-#define LOG10(x)                   sqlpp::math::numericFunc("LOG10", x)
-#define LOG10_2(x)                 sqlpp::math::numericFunc("LOG", x)
-#define LOGB(b, y)                 sqlpp::math::twoArgNumericFunc("LOG", b, y)
-#define ATAN2(x, y)                sqlpp::math::twoArgNumericFunc("ATAN2", x, y)
-#define POW(x, y)                  sqlpp::math::twoArgNumericFunc("POW", x, y)
-#define POWER(x, y)                sqlpp::math::twoArgNumericFunc("POWER", x, y)
-#define MOD(x, y)                  sqlpp::math::twoArgNumericFunc("MOD", x, y)
-#define ROUND(x, y)                sqlpp::math::twoArgNumericFunc("ROUND", x, y)
+#define COUNT(x)                   sqlpp::expr::NumericExpr("COUNT", x)
+#define SUM(x)                     sqlpp::expr::NumericExpr("SUM", x)
+#define AVG(x)                     sqlpp::expr::NumericExpr("AVG", x)
+#define MIN(x)                     sqlpp::expr::NumericExpr("MIN", x)
+#define MAX(x)                     sqlpp::expr::NumericExpr("MAX", x)
+#define COS(x)                     sqlpp::expr::NumericExpr("COS", x)
+#define COSH(x)                    sqlpp::expr::NumericExpr("COSH", x)
+#define ACOS(x)                    sqlpp::expr::NumericExpr("ACOS", x)
+#define ACOSH(x)                   sqlpp::expr::NumericExpr("ACOSH", x)
+#define SIN(x)                     sqlpp::expr::NumericExpr("SIN", x)
+#define SINH(x)                    sqlpp::expr::NumericExpr("SINH", x)
+#define ASIN(x)                    sqlpp::expr::NumericExpr("ASIN", x)
+#define ASINH(x)                   sqlpp::expr::NumericExpr("ASINH", x)
+#define TAN(x)                     sqlpp::expr::NumericExpr("TAN", x)
+#define TANH(x)                    sqlpp::expr::NumericExpr("TANH", x)
+#define ATAN(x)                    sqlpp::expr::NumericExpr("ATAN", x)
+#define ATANH(x)                   sqlpp::expr::NumericExpr("ATANH", x)
+#define DEGREES(x)                 sqlpp::expr::NumericExpr("DEGREES", x)
+#define RADIANS(x)                 sqlpp::expr::NumericExpr("RADIANS", x)
+#define CEIL(x)                    sqlpp::expr::NumericExpr("CEIL", x)
+#define CEILING(x)                 sqlpp::expr::NumericExpr("CEILING", x)
+#define FLOOR(x)                   sqlpp::expr::NumericExpr("FLOOR", x)
+#define TRUNC(x)                   sqlpp::expr::NumericExpr("TRUNC", x)
+#define EXP(x)                     sqlpp::expr::NumericExpr("EXP", x)
+#define SQRT(x)                    sqlpp::expr::NumericExpr("SQRT", x)
+#define LN(x)                      sqlpp::expr::NumericExpr("LN", x)
+#define LOG2(x)                    sqlpp::expr::NumericExpr("LOG2", x)
+#define LOG10(x)                   sqlpp::expr::NumericExpr("LOG10", x)
+#define LOG10_2(x)                 sqlpp::expr::NumericExpr("LOG", x)
+#define LOGB(b, y)                 sqlpp::expr::NumericExpr("LOG", b, y)
+#define ATAN2(x, y)                sqlpp::expr::NumericExpr("ATAN2", x, y)
+#define POW(x, y)                  sqlpp::expr::NumericExpr("POW", x, y)
+#define POWER(x, y)                sqlpp::expr::NumericExpr("POWER", x, y)
+#define MOD(x, y)                  sqlpp::expr::NumericExpr("MOD", x, y)
+#define ROUND(x, y)                sqlpp::expr::NumericExpr("ROUND", x, y)
 
 #define CHOOSE_LOG(_1, _2, NAME, ...) NAME
 #define LOG(...) CHOOSE_LOG(__VA_ARGS__, LOGB, LOG10_2)(__VA_ARGS__)
@@ -80,6 +78,7 @@
 #define DESC                       .desc()
 
 #define SELECT                     sqlpp::keywords::select::Select(
+#define SUB_SELECT(...)            sqlpp::keywords::select::Select(__VA_ARGS__)
 #define LEFT                       ).joinOp(" LEFT"
 #define INNER                      ).joinOp(" INNER"
 #define CROSS                      ).joinOp(" CROSS"
@@ -101,8 +100,9 @@
 
 #define INSERT                     sqlpp::keywords::insert::Insert(
 #define INTO                       ).into(
-#define VALUES                     ).values(
-#define DEFAULT                    ).default_(
+#define VALUES(...)                ).values(__VA_ARGS__
+#define DEFAULT                    ).default_
+#define VALUES_                    (
 
 #define COUT                       ).cout()
 

@@ -5,29 +5,27 @@
 #ifndef SQLPP_BASE_H
 #define SQLPP_BASE_H
 
-#include "core/db.h"
+#include <iostream>
+#include "core/table.h"
 
 
 namespace sqlpp::keywords {
     struct Keyword {
-        std::string *source = nullptr;
+        std::stringstream *source = nullptr;
 
-        virtual Keyword& morph() { return *this; }
-        void cout() const { std::cout << *source << ";" << std::endl; }
+        void cout() const {
+            std::cout << source->str() << ";" << std::endl;
+        }
     };
 
     struct SubQuery: Keyword {
-        SubQuery& operator|=(const std::string &alias) {
-            source->insert(0, "(")
-                  .append(") AS ")
-                  .append(alias);
-
-            return *this;
+        expr::AsExpr operator|=(const char *alias) {
+            return {source, alias, true};
         }
     };
 
     struct Query: Keyword {
-        std::string sql;
+        std::stringstream sql;
         Query() { source = &sql; }
     };
 }

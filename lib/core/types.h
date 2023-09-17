@@ -6,53 +6,50 @@
 #define SQLPP_TYPES_H
 
 #include <string>
+#include <sstream>
 #include <vector>
-#include <variant>
 
 
 namespace sqlpp {
     typedef int INTEGER;
     typedef double REAL;
-    typedef std::string TEXT;
-    typedef std::vector<unsigned char> BLOB;
-
-    enum SQLFlag {
-        PRIMARY_KEY   = (1 << 0),
-        AUTOINCREMENT = (1 << 1),
-        NOT_NULL      = (1 << 2),
-        UNIQUE        = (1 << 3),
-    };
+    typedef const char* TEXT;
+    typedef std::string BLOB;
 
     namespace types {
-        struct SQLForeignKey;
+        struct SQLTable;
         template<typename T> struct SQLCol;
-
-        typedef std::variant<
-                SQLCol<INTEGER>*, SQLCol<REAL>*, SQLCol<TEXT>*, SQLCol<BLOB>*
-        > SQLColTypePtr;
-
-        typedef std::vector<SQLForeignKey*> SQLForeignKeyList;
-        typedef std::vector<SQLColTypePtr> SQLColList;
     }
 
     namespace traits {
-        template<typename = void>
-        struct always_false: std::false_type {};
+        inline constexpr bool always_false_v = false;
 
         template<typename T>
         struct is_sql_col: std::false_type {};
         template<typename T>
         struct is_sql_col<types::SQLCol<T>>: std::true_type {};
 
-        template<typename T>
-        struct is_numeric_col: std::is_convertible<T, INTEGER> {};
-
-        template<typename T, typename V>
-        struct is_matching_col_type: std::false_type {};
-        template<typename T, typename V>
-        struct is_matching_col_type<types::SQLCol<T>&, V>: std::is_same<T, V> {};
+        template<typename V, typename T>
+        struct is_matching_col: std::false_type {};
+        template<typename V, typename T>
+        struct is_matching_col<V, types::SQLCol<T>>: std::is_same<V, T> {};
         template<typename V>
-        struct is_matching_col_type<types::SQLCol<TEXT>&, V>: std::is_convertible<V, TEXT> {};
+        struct is_matching_col<V, types::SQLCol<TEXT>>: std::is_convertible<V, TEXT> {};
+
+        template<typename V, typename T>
+        struct is_equivalent_cols: std::false_type {};
+        template<typename V, typename T>
+        struct is_equivalent_cols<types::SQLCol<V>, types::SQLCol<T>>: std::is_convertible<V, T> {};
+
+        template<typename T>
+        inline constexpr bool is_sql_col_v = is_sql_col<T>::value;
+        template<typename V, typename T>
+        inline constexpr bool is_matching_col_v = is_matching_col<V, T>::value;
+        template<typename V, typename T>
+        inline constexpr bool is_equivalent_cols_v = is_equivalent_cols<V, T>::value;
+        template<typename V, typename  T>
+        inline constexpr bool is_compatible_v =
+                is_matching_col_v<V, types::SQLCol<T>> || is_equivalent_cols_v<V, types::SQLCol<T>>;
     }
 }
 
