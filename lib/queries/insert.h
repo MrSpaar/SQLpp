@@ -27,18 +27,19 @@ namespace sqlpp::keywords::insert {
             return *this;
         }
 
-        template<typename ValType>
-        inline void append(const ValType& value, const char *sep = ", ") {
-            *source << sep;
-
-            if constexpr (std::is_same_v<ValType, BLOB>)
-                *source << "X'" << value << '\'';
-            else if constexpr (std::is_convertible_v<ValType, std::string>)
-                *source << '\'' << value << '\'';
-            else if constexpr (traits::is_sql_col_v<ValType>)
-                *source << value.name;
-            else
-                *source << value;
+        inline void append(const char *str, const char *sep = ", ") {
+            *source << sep << '\'' << str << '\'';
+        }
+        inline void append(const std::string &str, const char *sep = ", ") {
+            *source << sep << "X'" << str << '\'';
+        }
+        template<typename T>
+        inline void append(const types::SQLCol<T> &col, const char *sep = ", ") {
+            *source << sep << col.name;
+        }
+        template<typename T>
+        inline void append(const T& value, const char *sep = ", ") {
+            *source << sep << value;
         }
     };
 

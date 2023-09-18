@@ -13,19 +13,21 @@ namespace sqlpp::expr {
         std::stringstream sql;
 
         template<typename T>
+        const char* add(const types::SQLCol<T>& item) {
+            sql << item.name; return "";
+        }
+        const char* add(const Expr &expr) {
+            sql << expr.sql.str(); return "";
+        }
+        const char* add(const std::string &item) {
+            sql << "X'" << item << "'"; return "";
+        }
+        const char* add(const char *item) {
+            sql << "'" << item << "'"; return "";
+        }
+        template<typename T>
         const char* add(const T& item) {
-            if constexpr (traits::is_sql_col_v<T>)
-                sql << item.name;
-            else if constexpr (std::is_base_of_v<Expr, T>)
-                sql << item.sql.str();
-            else if constexpr (std::is_same_v<T, BLOB>)
-                sql << "X'" << item << "'";
-            else if constexpr (std::is_convertible_v<T, std::string>)
-                sql << "'" << item << "'";
-            else
-                sql << item;
-
-            return "";
+            sql << item; return "";
         }
     };
 
@@ -79,19 +81,19 @@ namespace sqlpp::expr {
         }
     };
 
-    struct NumericExpr: Expr {
+    struct NumExpr: Expr {
         template<typename T>
-        NumericExpr(const char *func, const T& item) {
+        NumExpr(const char *func, const T& item) {
             sql << func << "(" << add(item) << ")";
         }
 
         template<typename T1, typename T2>
-        NumericExpr(const char *func, const T1& item1, const T2& item2) {
+        NumExpr(const char *func, const T1& item1, const T2& item2) {
             sql << func << "(" << add(item1) << ", " << add(item2) << ")";
         }
 
         template<typename T>
-        NumericExpr(const char *colName, const char *op, const T& item) {
+        NumExpr(const char *colName, const char *op, const T& item) {
             sql << colName << " " << op << " " << add(item);
         }
 
@@ -113,15 +115,15 @@ namespace sqlpp::expr {
         ConditionExpr& operator>=(const T& item) { return ((ConditionExpr*) this)->morph(">=", item); }
 
         template<typename T>
-        NumericExpr& operator+(const T& item) { sql << " + " << add(item); return *this; }
+        NumExpr& operator+(const T& item) { sql << " + " << add(item); return *this; }
         template<typename T>
-        NumericExpr& operator-(const T& item) { sql << " - " << add(item); return *this; }
+        NumExpr& operator-(const T& item) { sql << " - " << add(item); return *this; }
         template<typename T>
-        NumericExpr& operator*(const T& item) { sql << " * " << add(item); return *this; }
+        NumExpr& operator*(const T& item) { sql << " * " << add(item); return *this; }
         template<typename T>
-        NumericExpr& operator/(const T& item) { sql << " / " << add(item); return *this; }
+        NumExpr& operator/(const T& item) { sql << " / " << add(item); return *this; }
         template<typename T>
-        NumericExpr& operator%(const T& item) { sql << " % " << add(item); return *this; }
+        NumExpr& operator%(const T& item) { sql << " % " << add(item); return *this; }
     };
 }
 

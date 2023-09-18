@@ -45,13 +45,14 @@ namespace sqlpp::keywords::update {
     struct Set: Keyword {
         template<typename Item, typename... Items>
         inline Set& morph(const Item &item, const Items&... items) {
-            if constexpr ((!std::is_same_v<Items, expr::EqExpr> || ...) || !std::is_same_v<Item, expr::EqExpr>)
-                static_assert(traits::always_false_v, "SET only accepts \"col = val\" expressions");
-
-            *source << " SET " << item.sql.str();
-            (..., (*source << ", " << items.sql));
-
+            *source << " SET ";
+            append(item, "");
+            (append(items), ...);
             return *this;
+        }
+
+        inline void append(const expr::EqExpr &expr, const char *sep = ", ") {
+            *source << sep << expr.sql.str();
         }
 
         inline From& from(const types::SQLTable &table) {
@@ -92,8 +93,9 @@ namespace sqlpp::keywords::update {
             return ((Or*) this)->morph(token);
         }
 
-        inline Set& set(const expr::EqExpr &expr) {
-            return ((Set*) this)->morph(expr);
+        template<typename... Exprs>
+        inline Set& set(const Exprs&... exprs) {
+            return ((Set*) this)->morph(exprs...);
         }
     };
 }

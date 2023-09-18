@@ -29,26 +29,17 @@ namespace sqlpp::keywords::select {
     struct OrderBy: SubQuery {
         template<typename Item, typename... Items>
         inline OrderBy& morph(const Item &item, const Items&... items) {
-            if constexpr (
-                    ((!traits::is_sql_col_v<Items> && !std::is_same_v<Items, expr::OrderExpr>) || ...)
-                    || (!traits::is_sql_col_v<Item> && !std::is_same_v<Item, expr::OrderExpr>)
-            )
-                static_assert(traits::always_false_v, "ORDER BY only accepts SQL columns and order expressions");
-
             append(item, "");
             (append(items), ...);
-
             return *this;
         }
 
-        template<typename Item>
-        inline void append(const Item &item, const char *sep = ", ") {
-            *source << sep;
-
-            if constexpr (traits::is_sql_col<Item>::value)
-                *source << item.name;
-            else if constexpr (std::is_same_v<Item, expr::OrderExpr>)
-                *source << item.sql;
+        template<typename T>
+        inline void append(const types::SQLCol<T> &col, const char *sep = ", ") {
+            *source << sep << col.name;
+        }
+        inline void append(const expr::OrderExpr &expr, const char *sep = ", ") {
+            *source << sep << expr.sql.str();
         }
 
         inline Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
@@ -81,13 +72,14 @@ namespace sqlpp::keywords::select {
     struct GroupBy: SubQuery {
         template<typename Item, typename... Items>
         inline GroupBy& morph(const Item& item, const Items&... items) {
-            if constexpr ((!traits::is_sql_col_v<Items> || ...) || !traits::is_sql_col_v<Item>)
-                static_assert(traits::always_false_v, "GROUP BY only accepts SQL columns");
-
-            *source << item.name;
-            (..., (*source << ", " << items.name));
-
+            append(item, "");
+            (append(items), ...);
             return *this;
+        }
+
+        template<typename T>
+        inline void append(const types::SQLCol<T> &col, const char *sep = ", ") {
+            *source << sep << col.name;
         }
 
         inline Having& having(const expr::ConditionExpr &expr) { return ((Having*) this)->morph(expr); }
@@ -203,20 +195,25 @@ namespace sqlpp::keywords::select {
             (append(items), ...);
         }
 
-        template<typename ValType>
-        inline void append(const ValType &val, const char *sep = ", ") {
-            sql << sep;
-
-            if constexpr (std::is_convertible_v<ValType, std::string>)
-                sql << '\'' << val << '\'';
-            else if constexpr (traits::is_sql_col_v<ValType>)
-                sql << val.name;
-            else if constexpr (std::is_same_v<ValType, expr::AsExpr> || std::is_same_v<ValType, expr::NumericExpr>)
-                sql << val.sql.str();
-            else if constexpr (std::is_convertible_v<ValType, SubQuery>)
-                sql << "(" << val.source->str() << ")";
-            else
-                sql << val;
+        template<typename T>
+        inline void append(const types::SQLCol<T> &col, const char *sep = ", ") {
+            sql << sep << col.name;
+        }
+        template<typename T>
+        inline void append(const T& item, const char *sep = ", ") {
+            sql << sep << item;
+        }
+        inline void append(const char *str, const char *sep = ", ") {
+            sql << sep << '\'' << str << '\'';
+        }
+        inline void append(const expr::AsExpr &expr, const char *sep = ", ") {
+            sql << sep << expr.sql.str();
+        }
+        inline void append(const expr::NumExpr &expr, const char *sep = ", ") {
+            sql << sep << expr.sql.str();
+        }
+        inline void append(const SubQuery &subQuery, const char *sep = ", ") {
+            sql << sep << "(" << subQuery.source->str() << ")";
         }
 
         inline From& from(const types::SQLTable &table) {

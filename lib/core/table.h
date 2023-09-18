@@ -29,15 +29,15 @@ struct sqlpp::types::SQLCol {
     [[nodiscard]] expr::AsExpr operator|=(const char *alias) const { return {name, alias}; }
 
     template<typename ValType>
-    [[nodiscard]] expr::NumericExpr operator+(const ValType &value) const { return op("+", value); }
+    [[nodiscard]] expr::NumExpr operator+(const ValType &value) const { return op("+", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumericExpr operator-(const ValType &value) const { return op("-", value); }
+    [[nodiscard]] expr::NumExpr operator-(const ValType &value) const { return op("-", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumericExpr operator*(const ValType &value) const { return op("*", value); }
+    [[nodiscard]] expr::NumExpr operator*(const ValType &value) const { return op("*", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumericExpr operator/(const ValType &value) const { return op("/", value); }
+    [[nodiscard]] expr::NumExpr operator/(const ValType &value) const { return op("/", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumericExpr operator%(const ValType &value) const { return op("%", value); }
+    [[nodiscard]] expr::NumExpr operator%(const ValType &value) const { return op("%", value); }
 
     template<typename ValType>
     [[nodiscard]] expr::ConditionExpr operator==(const ValType &value) const { return cond("=", value); }
@@ -81,7 +81,7 @@ struct sqlpp::types::SQLCol {
     }
 
     template<typename T>
-    expr::NumericExpr op(const char *op, const T& value) const {
+    expr::NumExpr op(const char *op, const T& value) const {
         if constexpr (!traits::is_compatible_v<T, ColType>)
             static_assert(traits::always_false_v, "Invalid arithmetic operation");
 
