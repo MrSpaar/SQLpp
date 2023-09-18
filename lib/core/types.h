@@ -24,11 +24,6 @@ namespace sqlpp {
     namespace traits {
         inline constexpr bool always_false_v = false;
 
-        template<typename T>
-        struct is_sql_col: std::false_type {};
-        template<typename T>
-        struct is_sql_col<types::SQLCol<T>>: std::true_type {};
-
         template<typename V, typename T>
         struct is_matching_col: std::false_type {};
         template<typename V, typename T>
@@ -41,8 +36,6 @@ namespace sqlpp {
         template<typename V, typename T>
         struct is_equivalent_cols<types::SQLCol<V>, types::SQLCol<T>>: std::is_convertible<V, T> {};
 
-        template<typename T>
-        inline constexpr bool is_sql_col_v = is_sql_col<T>::value;
         template<typename V, typename T>
         inline constexpr bool is_matching_col_v = is_matching_col<V, T>::value;
         template<typename V, typename T>
