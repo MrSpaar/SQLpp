@@ -10,59 +10,59 @@
 
 namespace sqlpp::expr {
     struct Expr {
-        std::stringstream sql;
+        std::string sql;
 
         template<typename T>
-        const char* add(const types::SQLCol<T>& item) {
-            sql << item.name; return "";
+        auto add(const types::SQLCol<T>& item) {
+            return sql.append(item.name);
         }
-        const char* add(const Expr &expr) {
-            sql << expr.sql.str(); return "";
+        auto add(const Expr &expr) {
+            return sql.append(expr.sql);
         }
-        const char* add(const std::string &item) {
-            sql << "X'" << item << "'"; return "";
+        auto add(const std::string &item) {
+            return sql.append("X'").append(item).append("'");
         }
-        const char* add(const char *item) {
-            sql << "'" << item << "'"; return "";
+        auto add(const char *item) {
+            return sql.append("'").append(item).append("'");
         }
         template<typename T>
-        const char* add(const T& item) {
-            sql << item; return "";
+        auto add(const T& item) {
+            return sql.append(std::to_string(item));
         }
     };
 
     struct EqExpr: Expr {
         template<typename T>
         EqExpr(const char *colName, const T& value) {
-            sql << colName << " = " << add(value);
+            sql.append(colName).append(" = ").append(add(value));
         }
     };
 
     struct AsExpr: Expr {
         AsExpr(const char *colName, const char *alias) {
-            sql << colName << " AS '" << alias << "'";
+            sql.append(colName).append(" AS '").append(alias).append("'");
         }
 
-        AsExpr(std::stringstream *source, const char *alias, bool isSubQuery = false) {
+        AsExpr(std::string *source, const char *alias, bool isSubQuery = false) {
             if (isSubQuery)
-                sql << "(" << source->str() << ") AS '" << alias << "'";
+                sql.append("(").append(*source).append(") AS '").append(alias).append("'");
             else
-                sql << source->str() << " AS '" << alias << "'";
+                sql.append(*source).append(" AS '").append(alias).append("'");
         }
     };
 
     struct OrderExpr: Expr {
         OrderExpr(const std::string &colName, const std::string &order) {
-            sql << colName << " " << order;
+            sql.append(colName).append(" ").append(order);
         }
     };
 
-    template<typename... Columns>
+    template<typename Col, typename... Cols>
     struct TableExpr: Expr {
-        explicit TableExpr(const char *tableName, const Columns&... cols) {
-            sql << tableName << "(";
-            ((sql << cols.name << ", "), ...);
-            sql.seekp(-2, std::ios_base::end) << ")";
+        explicit TableExpr(const char *tableName, const Col& col, const Cols&... cols) {
+            sql.append(tableName).append("(").append(col.name);
+            ((sql.append(", ").append(cols.name)), ...);
+            sql.append(")");
         }
     };
 
@@ -71,12 +71,12 @@ namespace sqlpp::expr {
 
         template<typename T>
         ConditionExpr(const char *colName, const char *op, const T& value) {
-            sql << colName << " " << op << " " << add(value);
+            sql.append(colName).append(" ").append(op).append(" "); add(value);
         }
 
         template<typename T>
         ConditionExpr& morph(const char *op, const T& value) {
-            sql << " " << op << " " << add(value);
+            sql.append(" ").append(op).append(" "); add(value);
             return *this;
         }
     };
@@ -84,17 +84,17 @@ namespace sqlpp::expr {
     struct NumExpr: Expr {
         template<typename T>
         NumExpr(const char *func, const T& item) {
-            sql << func << "(" << add(item) << ")";
+            sql.append(func).append("("); add(item).append(")");
         }
 
         template<typename T1, typename T2>
         NumExpr(const char *func, const T1& item1, const T2& item2) {
-            sql << func << "(" << add(item1) << ", " << add(item2) << ")";
+            sql.append(func).append("("); add(item1).append(", "); add(item2).append(")");
         }
 
         template<typename T>
         NumExpr(const char *colName, const char *op, const T& item) {
-            sql << colName << " " << op << " " << add(item);
+            sql.append(colName).append(" ").append(op).append(" "); add(item);
         }
 
         AsExpr operator|=(const char *alias) {
@@ -115,15 +115,15 @@ namespace sqlpp::expr {
         ConditionExpr& operator>=(const T& item) { return ((ConditionExpr*) this)->morph(">=", item); }
 
         template<typename T>
-        NumExpr& operator+(const T& item) { sql << " + " << add(item); return *this; }
+        NumExpr& operator+(const T& item) { sql.append(" + "); add(item); return *this; }
         template<typename T>
-        NumExpr& operator-(const T& item) { sql << " - " << add(item); return *this; }
+        NumExpr& operator-(const T& item) { sql.append(" - "); add(item); return *this; }
         template<typename T>
-        NumExpr& operator*(const T& item) { sql << " * " << add(item); return *this; }
+        NumExpr& operator*(const T& item) { sql.append(" * "); add(item); return *this; }
         template<typename T>
-        NumExpr& operator/(const T& item) { sql << " / " << add(item); return *this; }
+        NumExpr& operator/(const T& item) { sql.append(" / "); add(item); return *this; }
         template<typename T>
-        NumExpr& operator%(const T& item) { sql << " % " << add(item); return *this; }
+        NumExpr& operator%(const T& item) { sql.append(" % "); add(item); return *this; }
     };
 }
 

@@ -54,21 +54,19 @@ struct sqlpp::types::SQLCol {
 
     [[nodiscard]] expr::ConditionExpr between(const ColType &lower, const ColType &upper) const {
         expr::ConditionExpr expr;
-        expr.sql << name << " BETWEEN " << expr.add(lower) << " AND " << expr.add(upper);
+        expr.sql.append(name).append(" BETWEEN "); expr.add(lower).append(" AND "); expr.add(upper);
         return expr;
     }
 
     [[nodiscard]] expr::ConditionExpr in(const std::initializer_list<ColType> &values) const {
         expr::ConditionExpr expr;
-        expr.sql << name << " IN (";
+        expr.sql.append(name).append(" IN (");
 
-        for (const ColType &value : values) {
-            if constexpr (std::is_same_v<ColType, TEXT>) expr.sql << "'" << value << "', ";
-            else expr.sql << value << ", ";
-        }
+        for (const ColType &value : values)
+            expr.add(value).append(", ");
 
-        expr.sql.seekp(-2, std::ios_base::end);
-        expr.sql << ")";
+        expr.sql.pop_back(); expr.sql.pop_back();
+        expr.sql.append(")");
         return expr;
     }
 

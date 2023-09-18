@@ -11,14 +11,14 @@
 namespace sqlpp::keywords::select {
     struct Offset: SubQuery {
         Offset& morph(int offset) {
-            *source << " OFFSET " << offset;
+            source->append(" OFFSET ").append(std::to_string(offset));
             return *this;
         }
     };
 
     struct Limit: SubQuery {
         Limit& morph(int limit) {
-            *source << " LIMIT " << limit;
+            source->append(" LIMIT ").append(std::to_string(limit));
             return *this;
         }
 
@@ -36,10 +36,10 @@ namespace sqlpp::keywords::select {
 
         template<typename T>
         void append(const types::SQLCol<T> &col, const char *sep = ", ") {
-            *source << sep << col.name;
+            source->append(sep).append(col.name);
         }
         void append(const expr::OrderExpr &expr, const char *sep = ", ") {
-            *source << sep << expr.sql.str();
+            source->append(sep).append(expr.sql);
         }
 
         Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
@@ -53,14 +53,14 @@ namespace sqlpp::keywords::select {
 
         template<typename... Items>
         OrderBy& by(const Items&... items) {
-            *source << " ORDER BY ";
+            source->append(" ORDER BY ");
             return ((OrderBy*) this)->morph(std::forward<const Items&>(items)...);
         }
     };
 
     struct Having: SubQuery {
         Having& morph(const expr::ConditionExpr &expr) {
-            *source << " HAVING " << expr.sql.str();
+            source->append(" HAVING ").append(expr.sql);
             return *this;
         }
 
@@ -79,7 +79,7 @@ namespace sqlpp::keywords::select {
 
         template<typename T>
         void append(const types::SQLCol<T> &col, const char *sep = ", ") {
-            *source << sep << col.name;
+            source->append(sep).append(col.name);
         }
 
         Having& having(const expr::ConditionExpr &expr) { return ((Having*) this)->morph(expr); }
@@ -95,24 +95,24 @@ namespace sqlpp::keywords::select {
 
         template<typename... Items>
         GroupBy& by(const Items&... items) {
-            *source << " GROUP BY ";
+            source->append(" GROUP BY ");
             return ((GroupBy*) this)->morph(std::forward<const Items&>(items)...);
         }
     };
 
     struct Where: SubQuery {
         Where& morph(const expr::ConditionExpr &expr) {
-            *source << " WHERE " << expr.sql.str();
+            source->append(" WHERE ").append(expr.sql);
             return *this;
         }
 
         Where& and_(const expr::ConditionExpr &expr) {
-            *source << " AND " << expr.sql.str();
+            source->append(" AND ").append(expr.sql);
             return *this;
         }
 
         Where& or_(const expr::ConditionExpr &expr) {
-            *source << " OR " << expr.sql.str();
+            source->append(" OR ").append(expr.sql);
             return *this;
         }
 
@@ -125,17 +125,17 @@ namespace sqlpp::keywords::select {
 
     struct On: SubQuery {
         On& morph(const expr::ConditionExpr &expr) {
-            *source << " ON " << expr.sql.str();
+            source->append(" ON ").append(expr.sql);
             return *this;
         }
 
         On& and_(const expr::ConditionExpr &expr) {
-            *source << " AND " << expr.sql.str();
+            source->append(" AND ").append(expr.sql);
             return *this;
         }
 
         On& or_(const expr::ConditionExpr &expr) {
-            *source << " OR " << expr.sql.str();
+            source->append(" OR ").append(expr.sql);
             return *this;
         }
 
@@ -148,7 +148,7 @@ namespace sqlpp::keywords::select {
 
     struct Join: Keyword {
         Join& morph(const types::SQLTable &table) {
-            *source << " JOIN " << table.name;
+            source->append(" JOIN ").append(table.name);
             return *this;
         }
 
@@ -159,7 +159,7 @@ namespace sqlpp::keywords::select {
 
     struct JoinOp: Keyword {
         JoinOp& morph(const char *joinOp) {
-            *source << joinOp;
+            source->append(joinOp);
             return *this;
         }
 
@@ -170,12 +170,12 @@ namespace sqlpp::keywords::select {
 
     struct From: SubQuery {
         From& morph(const types::SQLTable &table) {
-            *source << " FROM " << table.name;
+            source->append(" FROM ").append(table.name);
             return *this;
         }
 
         From& morph(const SubQuery &subQuery) {
-            *source << " FROM (" << subQuery.source->str() << ")";
+            source->append(" FROM (").append(*subQuery.source).append(")");
             return *this;
         }
 
@@ -190,30 +190,30 @@ namespace sqlpp::keywords::select {
     struct Select: Query {
         template<typename Item, typename... Items>
         explicit Select(const Item& item, const Items&... items) {
-            sql << "SELECT ";
+            sql.append("SELECT ");
             append(item, "");
             (append(items), ...);
         }
 
         template<typename T>
         void append(const types::SQLCol<T> &col, const char *sep = ", ") {
-            sql << sep << col.name;
+            sql.append(sep).append(col.name);
         }
         template<typename T>
         void append(const T& item, const char *sep = ", ") {
-            sql << sep << item;
+            sql.append(sep).append(item);
         }
         void append(const char *str, const char *sep = ", ") {
-            sql << sep << '\'' << str << '\'';
+            sql.append(sep).append("'").append(str).append("'");
         }
         void append(const expr::AsExpr &expr, const char *sep = ", ") {
-            sql << sep << expr.sql.str();
+            sql.append(sep).append(expr.sql);
         }
         void append(const expr::NumExpr &expr, const char *sep = ", ") {
-            sql << sep << expr.sql.str();
+            sql.append(sep).append(expr.sql);
         }
         void append(const SubQuery &subQuery, const char *sep = ", ") {
-            sql << sep << "(" << subQuery.source->str() << ")";
+            sql.append(sep).append("(").append(*subQuery.source).append(")");
         }
 
         From& from(const types::SQLTable &table) {

@@ -11,7 +11,7 @@
 namespace sqlpp::keywords::insert {
     struct Default: Keyword {
         Default& morph() {
-            *source << " DEFAULT VALUES";
+            source->append(" DEFAULT VALUES");
             return *this;
         }
     };
@@ -20,33 +20,32 @@ namespace sqlpp::keywords::insert {
     struct Values: Keyword {
         template<typename Item, typename... Items>
         Values& morph(const Item &value, const Items&... values) {
-            *source << "VALUES (";
+            source->append("VALUES (");
             append(value, ""); (append(values), ...);
-            *source << ")";
-
+            source->append(")");
             return *this;
         }
 
         void append(const char *str, const char *sep = ", ") {
-            *source << sep << '\'' << str << '\'';
+            source->append(sep).append("'").append(str).append("'");
         }
         void append(const std::string &str, const char *sep = ", ") {
-            *source << sep << "X'" << str << '\'';
+            source->append(sep).append("X'").append(str).append("'");
         }
         template<typename T>
         void append(const types::SQLCol<T> &col, const char *sep = ", ") {
-            *source << sep << col.name;
+            source->append(sep).append(col.name);
         }
         template<typename T>
         void append(const T& value, const char *sep = ", ") {
-            *source << sep << value;
+            source->append(sep).append(std::to_string(value));
         }
     };
 
     template<typename... ColTypes>
     struct Into: Keyword {
         Into<ColTypes...>& morph(const expr::TableExpr<ColTypes...> &expr) {
-            *source << "INTO " << expr.sql.str();
+            source->append("INTO ").append(expr.sql);
             return *this;
         }
 
@@ -65,7 +64,7 @@ namespace sqlpp::keywords::insert {
 
     struct Or: Keyword {
         Or &morph(const char *token) {
-            *source << "OR " << token;
+            source->append("OR ").append(token);
             return *this;
         }
 
@@ -80,9 +79,7 @@ namespace sqlpp::keywords::insert {
     };
 
     struct Insert: Query {
-        explicit Insert(): Query() {
-            sql << "INSERT ";
-        }
+        explicit Insert(): Query() { sql.append("INSERT "); }
 
         Or& or_(const char *token) {
             return ((Or*) this)->morph(token);

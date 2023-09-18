@@ -11,10 +11,10 @@
 
 namespace sqlpp::keywords {
     struct Keyword {
-        std::stringstream *source = nullptr;
+        std::string *source = nullptr;
 
         void cout() const {
-            std::cout << source->str() << ";" << std::endl;
+            std::cout << *source << ";" << std::endl;
         }
     };
 
@@ -25,7 +25,7 @@ namespace sqlpp::keywords {
     };
 
     struct Query: Keyword {
-        std::stringstream sql;
+        std::string sql;
         Query() { source = &sql; }
     };
 }
