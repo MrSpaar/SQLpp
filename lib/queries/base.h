@@ -5,8 +5,7 @@
 #ifndef SQLPP_BASE_H
 #define SQLPP_BASE_H
 
-#include <iostream>
-#include "core/table.h"
+#include "core/conn.h"
 
 
 namespace sqlpp::keywords {
@@ -18,8 +17,14 @@ namespace sqlpp::keywords {
         }
     };
 
-    struct SubQuery: Keyword {
-        expr::AsExpr operator|=(const char *alias) {
+    struct Runnable: Keyword {
+        [[nodiscard]] SQLResult exec(Connection &conn) {
+            return conn.exec(source);
+        }
+    };
+
+    struct SubQuery: Runnable {
+        [[nodiscard]] expr::AsExpr operator|=(const char *alias) {
             return {source, alias, true};
         }
     };

@@ -2,7 +2,7 @@
 // Created by mrspaar on 7/13/23.
 //
 
-#include "core/macros.h"
+#include "macros.h"
 using namespace sqlpp;
 
 TABLE(user,
@@ -12,10 +12,15 @@ TABLE(user,
 
 
 int main() {
-    SELECT COUNT(id), name FROM user WHERE id*2+1 > 10 COUT;
-    INSERT INTO user (id, name) VALUES(1, "Hello") COUT;
-    UPDATE user SET id = 1, name = "Hello" WHERE id == 1 COUT;
-    INSERT INTO user(id, name) VALUES(1, "Hello") COUT;
+    Connection conn("test.db");
+
+    SQLResult res = SELECT COUNT(id) AS "count", name FROM user WHERE id*2+1 > 10 EXEC(conn);
+
+    if (res.bad())
+        std::cerr << res.errMsg << std::endl;
+
+    UPDATE OR IGNORE user SET id = 1, name = "Hello" WHERE id == 1 COUT;
+    INSERT OR IGNORE INTO user(id, name) VALUES(1, "Hello") COUT;
 
     return 0;
 }

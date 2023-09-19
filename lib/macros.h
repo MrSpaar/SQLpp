@@ -105,6 +105,7 @@
 #define VALUES_                    (
 
 #define COUT                       ).cout()
+#define EXEC(conn)                 ).exec(conn)
 
 
 #endif //SQLPP_MACROS_H

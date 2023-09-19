@@ -5,7 +5,7 @@ project(SQLpp VERSION 0.1 DESCRIPTION "A simple C++ 17 ORM for SQLite3")
 
 ################################################### LIBRARY ###################################################
 add_library(${PROJECT_NAME}
-        lib/core/types.h lib/core/macros.h lib/core/table.h lib/core/expr.h
+        lib/core/types.h lib/macros.h lib/core/table.h lib/core/expr.h lib/core/conn.h
         lib/queries/base.h lib/queries/select.h lib/queries/delete.h
         lib/queries/update.h lib/queries/insert.h)
 
