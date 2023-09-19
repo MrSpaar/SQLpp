@@ -13,20 +13,20 @@ namespace sqlpp::expr {
         std::string sql;
 
         template<typename T>
-        auto add(const types::SQLCol<T>& item) {
+        auto& add(const types::SQLCol<T>& item) {
             return sql.append(item.name);
         }
-        auto add(const Expr &expr) {
+        auto& add(const Expr &expr) {
             return sql.append(expr.sql);
         }
-        auto add(const std::string &item) {
+        auto& add(const std::string &item) {
             return sql.append("X'").append(item).append("'");
         }
-        auto add(const char *item) {
+        auto& add(const char *item) {
             return sql.append("'").append(item).append("'");
         }
         template<typename T>
-        auto add(const T& item) {
+        auto& add(const T& item) {
             return sql.append(std::to_string(item));
         }
     };
@@ -34,7 +34,7 @@ namespace sqlpp::expr {
     struct EqExpr: Expr {
         template<typename T>
         EqExpr(const char *colName, const T& value) {
-            sql.append(colName).append(" = ").append(add(value));
+            sql.append(colName).append(" = "); add(value);
         }
     };
 
