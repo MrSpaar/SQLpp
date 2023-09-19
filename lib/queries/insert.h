@@ -20,7 +20,7 @@ namespace sqlpp::keywords::insert {
     struct Values: Keyword {
         template<typename Item, typename... Items>
         Values& morph(const Item &value, const Items&... values) {
-            source->append("VALUES (");
+            source->append(" VALUES (");
             append(value, ""); (append(values), ...);
             source->append(")");
             return *this;
