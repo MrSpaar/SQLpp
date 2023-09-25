@@ -32,8 +32,7 @@ int main() {
 }
 ```
 
-Only types and syntax are checked, other errors (eg. column mismatch) won't be detected until runtime.  
-So far, only `DEFAULT VALUES_` (instead of `DEFAULT VALUES`) and `COUT` differ from the original SQLite syntax.
+Only types and syntax are checked. So far, only `DEFAULT VALUES_` (instead of `DEFAULT VALUES`) and `COUT` differ from the original SQLite syntax.
 
 ## Coverage
 
@@ -50,3 +49,42 @@ As this is a proof of concept, the library is incomplete and partially untested 
 | [Core functions](https://www.sqlite.org/lang_corefunc.html)                                                          | 🚧          | Partially implemented                                                |
 | [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌           | Not planned                                                          |
 | [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌           | Not planned                                                          |
+
+## Runtime
+
+The library also provides a runtime API, which is a thin wrapper around the SQLite C API.
+It is not checked at compile time and is not type safe.
+
+Here is an example of how to use it :
+```cpp
+#include "macros.h"
+using namespace sqlpp;
+
+TABLE(user,
+    COL(id, INTEGER)
+    COL(name, TEXT)
+    COL(email, TEXT)
+)
+
+
+int main() {
+    Connection conn("../data/test.db");
+    SQLResult res = SELECT id, name, email FROM user EXEC(conn);
+
+    if (res.bad()) {
+        std::cerr << res.errMsg << std::endl;
+        return 1;
+    } else if (res.empty()) {
+        std::cout << "Empty result" << std::endl;
+        return 0;
+    }
+    
+    // row[id] is an int
+    // for aliases, use row["alias"].as<T>()
+    
+    for (SQLRow &row : res)
+        std::cout << row[id] << " " << row[name] << " " << row[email] << std::endl;
+
+    return 0;
+}
+```
