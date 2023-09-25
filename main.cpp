@@ -14,7 +14,7 @@ TABLE(user,
 
 int main() {
     Connection conn("../data/test.db");
-    SQLResult res = SELECT id, name, email, id+1 AS "next" FROM user EXEC(conn);
+    SQLResult res = SELECT LOG(id, 2) AS "id", name, email, id+1 AS "next" FROM user EXEC(conn);
 
     if (res.bad())
         std::cerr << res.errMsg << std::endl;

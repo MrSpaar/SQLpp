@@ -38,17 +38,17 @@ Only types and syntax are checked. So far, only `DEFAULT VALUES_` (instead of `D
 
 As this is a proof of concept, the library is incomplete and partially untested :
 
-| Feature                                                                                                              | Supported   | Notes                                                                |
-|----------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------------------------------|
-| [SELECT](https://www.sqlite.org/lang_select.html)                                                                    | ✔️          | `ALL` and `DISTINCT` not yet implemented                             |
-| [INSERT](https://www.sqlite.org/lang_insert.html)                                                                    | ✔️          | `INSERT INTO table SELECT ...` not yet implemented                   |
-| [UPDATE](https://www.sqlite.org/lang_update.html)                                                                    | ✔️          | `(foo, bar, baz) = ...` not yet implemented                          |
-| [DELETE](https://www.sqlite.org/lang_delete.html)                                                                    | ✔️          | Full support                                                         |
-| [Math](https://www.sqlite.org/lang_mathfunc.html)                                                                    | ✔️          | Full support                                                         |
-| [Date/Time](https://www.sqlite.org/lang_datefunc.html)                                                               | 🚧          | To be implemented                                                    |
-| [Core functions](https://www.sqlite.org/lang_corefunc.html)                                                          | 🚧          | Partially implemented                                                |
-| [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌           | Not planned                                                          |
-| [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌           | Not planned                                                          |
+| Feature                                                                                                              | Supported   | Notes                                              |
+|----------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------------|
+| [SELECT](https://www.sqlite.org/lang_select.html)                                                                    | ✔️          | `ALL` and `DISTINCT` not yet implemented           |
+| [INSERT](https://www.sqlite.org/lang_insert.html)                                                                    | ✔️          | `INSERT INTO table SELECT ...` not yet implemented |
+| [UPDATE](https://www.sqlite.org/lang_update.html)                                                                    | ✔️          | `(foo, bar, baz) = ...` not yet implemented        |
+| [DELETE](https://www.sqlite.org/lang_delete.html)                                                                    | ✔️          | Full support                                       |
+| [Math](https://www.sqlite.org/lang_mathfunc.html)                                                                    | ✔️          | Full support                                       |
+| [Date/Time](https://www.sqlite.org/lang_datefunc.html)                                                               | 🚧          | To be implemented                                  |
+| [Core functions](https://www.sqlite.org/lang_corefunc.html)                                                          | ✔️          | Full support                                       |
+| [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌           | Not planned                                        |
+| [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌           | Not planned                                        |
 
 ## Runtime
 

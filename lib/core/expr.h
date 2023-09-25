@@ -13,21 +13,25 @@ namespace sqlpp::expr {
         std::string sql;
 
         template<typename T>
-        auto& add(const types::SQLCol<T>& item) {
-            return sql.append(item.name);
+        void add(const types::SQLCol<T>& item) {
+            sql.append(item.name);
         }
-        auto& add(const Expr &expr) {
-            return sql.append(expr.sql);
+        void add(const Expr &expr) {
+            sql.append(expr.sql);
         }
-        auto& add(const std::string &item) {
-            return sql.append("X'").append(item).append("'");
+        void add(const std::string &item) {
+            sql.append("X'").append(item).append("'");
         }
-        auto& add(const char *item) {
-            return sql.append("'").append(item).append("'");
+        void add(const char *item) {
+            sql.append("'").append(item).append("'");
         }
         template<typename T>
-        auto& add(const T& item) {
-            return sql.append(std::to_string(item));
+        void add(const T& item) {
+            sql.append(std::to_string(item));
+        }
+        template<typename T>
+        void add(const T& item, const char *sep) {
+            sql.append(sep); add(item);
         }
     };
 
@@ -82,14 +86,15 @@ namespace sqlpp::expr {
     };
 
     struct NumExpr: Expr {
-        template<typename T>
-        NumExpr(const char *func, const T& item) {
-            sql.append(func).append("("); add(item).append(")");
+        explicit NumExpr(const char *func) {
+            sql.append(func);
         }
 
-        template<typename T1, typename T2>
-        NumExpr(const char *func, const T1& item1, const T2& item2) {
-            sql.append(func).append("("); add(item1).append(", "); add(item2).append(")");
+        template<typename T, typename... Ts>
+        NumExpr(const char *func, const T& item, const Ts&... items) {
+            sql.append(func).append("(");
+            add(item); ((add(items, ", ")), ...);
+            sql.append(")");
         }
 
         template<typename T>

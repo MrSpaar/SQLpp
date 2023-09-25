@@ -9,6 +9,7 @@
 #include <variant>
 #include <iostream>
 #include <sqlite3.h>
+#include <cstring>
 
 #include "table.h"
 
@@ -16,8 +17,12 @@
 namespace sqlpp {
     struct SQLValue: std::string {
         using std::string::string;
+
         template<typename T>
         T as() const {
+            if (empty())
+                return T();
+
             if constexpr (std::is_same_v<T, float>)
                 return std::stof(*this);
             else if constexpr (std::is_same_v<T, double>)
@@ -78,7 +83,7 @@ namespace sqlpp {
             SQLRow row;
 
             for (int i = 0; i < argc; i++)
-                row.data[colName[i]] = argv[i];
+                row.data[colName[i]] = argv[i]? argv[i] : "";
 
             result->data.push_back(row);
             return 0;
