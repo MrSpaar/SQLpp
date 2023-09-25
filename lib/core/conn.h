@@ -6,6 +6,7 @@
 #define SQLPP_CONN_H
 
 #include <map>
+#include <variant>
 #include <iostream>
 #include <sqlite3.h>
 
@@ -13,31 +14,33 @@
 
 
 namespace sqlpp {
+    struct SQLValue: std::string {
+        using std::string::string;
+        template<typename T>
+        T as() const {
+            if constexpr (std::is_same_v<T, float>)
+                return std::stof(*this);
+            else if constexpr (std::is_same_v<T, double>)
+                return std::stod(*this);
+            else if constexpr (std::is_same_v<T, int>)
+                return std::stoi(*this);
+        }
+    };
+
     struct SQLRow {
-        std::map<std::string, std::string> data;
+        std::map<std::string, SQLValue> data;
 
         template<typename T>
-        T get(const std::string &key) {
-            if (data.find(key) == data.end())
-                throw std::runtime_error("Key not found");
-
-            try {
-                if constexpr (std::is_same_v<T, int>)
-                    return std::stoi(data[key]);
-                else if constexpr (std::is_same_v<T, double>)
-                    return std::stod(data[key]);
-                else if constexpr (std::is_same_v<T, std::string>)
-                    return data[key];
-
-                throw std::runtime_error("Unsupported type");
-            } catch (std::exception &e) {
-                throw std::runtime_error("Can't convert value");
-            }
+        [[nodiscard]] T operator[](const types::SQLCol<T> &col) const {
+            return data.at(col.name).template as<T>();
         }
 
-        template<typename T>
-        T operator[](const types::SQLCol<T> &col) {
-            return get<T>(col.name);
+        [[nodiscard]] SQLValue& operator[](const types::SQLCol<TEXT> &col) {
+            return data.at(col.name);
+        }
+
+        [[nodiscard]] SQLValue operator[](const std::string &col) const {
+            return data.at(col);
         }
     };
 
@@ -75,7 +78,7 @@ namespace sqlpp {
             SQLRow row;
 
             for (int i = 0; i < argc; i++)
-                row.data[colName[i]] = argv[i] ? argv[i] : "NULL";
+                row.data[colName[i]] = argv[i];
 
             result->data.push_back(row);
             return 0;
