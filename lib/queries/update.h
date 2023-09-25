@@ -9,24 +9,24 @@
 
 
 namespace sqlpp::keywords::update {
-    struct Where: Keyword {
+    struct Where: Runnable {
         Where& morph(const expr::ConditionExpr &expr) {
-            source->append(" WHERE ").append(expr.sql);
+            source->append(" WHERE ").append(expr);
             return *this;
         }
 
         Where& and_(const expr::ConditionExpr &expr) {
-            source->append(" AND ").append(expr.sql);
+            source->append(" AND ").append(expr);
             return *this;
         }
 
         Where& or_(const expr::ConditionExpr &expr) {
-            source->append(" OR ").append(expr.sql);
+            source->append(" OR ").append(expr);
             return *this;
         }
     };
 
-    struct From: Keyword {
+    struct From: Runnable {
         From& morph(const types::SQLTable &table) {
             source->append(" FROM ").append(table.name);
             return *this;
@@ -42,7 +42,7 @@ namespace sqlpp::keywords::update {
         }
     };
 
-    struct Set: Keyword {
+    struct Set: Runnable {
         template<typename Item, typename... Items>
         Set& morph(const Item &item, const Items&... items) {
             source->append(" SET ");
@@ -52,7 +52,7 @@ namespace sqlpp::keywords::update {
         }
 
         void append(const expr::EqExpr &expr, const char *sep = ", ") {
-            source->append(sep).append(expr.sql);
+            source->append(sep).append(expr);
         }
 
         From& from(const types::SQLTable &table) {

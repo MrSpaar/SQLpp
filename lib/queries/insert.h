@@ -9,7 +9,7 @@
 
 
 namespace sqlpp::keywords::insert {
-    struct Default: Keyword {
+    struct Default: Runnable {
         Default& morph() {
             source->append(" DEFAULT VALUES");
             return *this;
@@ -17,7 +17,7 @@ namespace sqlpp::keywords::insert {
     };
 
     template<typename...>
-    struct Values: Keyword {
+    struct Values: Runnable {
         template<typename Item, typename... Items>
         Values& morph(const Item &value, const Items&... values) {
             source->append(" VALUES (");
@@ -45,7 +45,7 @@ namespace sqlpp::keywords::insert {
     template<typename... ColTypes>
     struct Into: Keyword {
         Into<ColTypes...>& morph(const expr::TableExpr<ColTypes...> &expr) {
-            source->append("INTO ").append(expr.sql);
+            source->append("INTO ").append(expr);
             return *this;
         }
 

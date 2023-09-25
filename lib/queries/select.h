@@ -39,7 +39,7 @@ namespace sqlpp::keywords::select {
             source->append(sep).append(col.name);
         }
         void append(const expr::OrderExpr &expr, const char *sep = ", ") {
-            source->append(sep).append(expr.sql);
+            source->append(sep).append(expr);
         }
 
         Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
@@ -60,7 +60,7 @@ namespace sqlpp::keywords::select {
 
     struct Having: SubQuery {
         Having& morph(const expr::ConditionExpr &expr) {
-            source->append(" HAVING ").append(expr.sql);
+            source->append(" HAVING ").append(expr);
             return *this;
         }
 
@@ -102,17 +102,17 @@ namespace sqlpp::keywords::select {
 
     struct Where: SubQuery {
         Where& morph(const expr::ConditionExpr &expr) {
-            source->append(" WHERE ").append(expr.sql);
+            source->append(" WHERE ").append(expr);
             return *this;
         }
 
         Where& and_(const expr::ConditionExpr &expr) {
-            source->append(" AND ").append(expr.sql);
+            source->append(" AND ").append(expr);
             return *this;
         }
 
         Where& or_(const expr::ConditionExpr &expr) {
-            source->append(" OR ").append(expr.sql);
+            source->append(" OR ").append(expr);
             return *this;
         }
 
@@ -125,17 +125,17 @@ namespace sqlpp::keywords::select {
 
     struct On: SubQuery {
         On& morph(const expr::ConditionExpr &expr) {
-            source->append(" ON ").append(expr.sql);
+            source->append(" ON ").append(expr);
             return *this;
         }
 
         On& and_(const expr::ConditionExpr &expr) {
-            source->append(" AND ").append(expr.sql);
+            source->append(" AND ").append(expr);
             return *this;
         }
 
         On& or_(const expr::ConditionExpr &expr) {
-            source->append(" OR ").append(expr.sql);
+            source->append(" OR ").append(expr);
             return *this;
         }
 
@@ -207,10 +207,10 @@ namespace sqlpp::keywords::select {
             sql.append(sep).append("'").append(str).append("'");
         }
         void append(const expr::AsExpr &expr, const char *sep = ", ") {
-            sql.append(sep).append(expr.sql);
+            sql.append(sep).append(expr);
         }
         void append(const expr::NumExpr &expr, const char *sep = ", ") {
-            sql.append(sep).append(expr.sql);
+            sql.append(sep).append(expr);
         }
         void append(const SubQuery &subQuery, const char *sep = ", ") {
             sql.append(sep).append("(").append(*subQuery.source).append(")");

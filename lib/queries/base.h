@@ -25,7 +25,7 @@ namespace sqlpp::keywords {
 
     struct SubQuery: Runnable {
         [[nodiscard]] expr::AsExpr operator|=(const char *alias) {
-            return {source, alias, true};
+            return {source, alias};
         }
     };
 

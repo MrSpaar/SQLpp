@@ -9,24 +9,24 @@
 
 
 namespace sqlpp::keywords::del {
-    struct Where: Keyword {
+    struct Where: Runnable {
         Where& morph(const expr::ConditionExpr &expr) {
-            source->append(" WHERE ").append(expr.sql);
+            source->append(" WHERE ").append(expr);
             return *this;
         }
 
         Where& and_(const expr::ConditionExpr &expr) {
-            source->append(" AND ").append(expr.sql);
+            source->append(" AND ").append(expr);
             return *this;
         }
 
         Where& or_(const expr::ConditionExpr &expr) {
-            source->append(" OR ").append(expr.sql);
+            source->append(" OR ").append(expr);
             return *this;
         }
     };
 
-    struct From: Keyword {
+    struct From: Runnable {
         From& morph(const types::SQLTable &table) {
             source->append("FROM ").append(table.name);
             return *this;

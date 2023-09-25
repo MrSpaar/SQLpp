@@ -14,7 +14,7 @@ TABLE(user,
 
 int main() {
     Connection conn("../data/test.db");
-    SQLResult res = SELECT LOG(id, 2) AS "id", name, email, id+1 AS "next" FROM user EXEC(conn);
+    SQLResult res = SELECT id, name, email FROM user WHERE id > 0 EXEC(conn);
 
     if (res.bad())
         std::cerr << res.errMsg << std::endl;
@@ -22,7 +22,7 @@ int main() {
         std::cout << "Empty result" << std::endl;
     else
         for (SQLRow &row : res)
-            std::cout << row[id] << " " << row["next"].as<int>() << " " << row[name] << " " << row[email] << std::endl;
+            std::cout << row[id] << " " << row[name] << " " << row[email] << std::endl;
 
     return 0;
 }

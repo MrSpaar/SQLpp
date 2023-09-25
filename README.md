@@ -45,8 +45,8 @@ As this is a proof of concept, the library is incomplete and partially untested 
 | [UPDATE](https://www.sqlite.org/lang_update.html)                                                                    | ✔️          | `(foo, bar, baz) = ...` not yet implemented        |
 | [DELETE](https://www.sqlite.org/lang_delete.html)                                                                    | ✔️          | Full support                                       |
 | [Math](https://www.sqlite.org/lang_mathfunc.html)                                                                    | ✔️          | Full support                                       |
-| [Date/Time](https://www.sqlite.org/lang_datefunc.html)                                                               | 🚧          | To be implemented                                  |
 | [Core functions](https://www.sqlite.org/lang_corefunc.html)                                                          | ✔️          | Full support                                       |
+| [Date/Time](https://www.sqlite.org/lang_datefunc.html)                                                               | 🚧          | To be implemented                                  |
 | [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌           | Not planned                                        |
 | [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌           | Not planned                                        |
 
