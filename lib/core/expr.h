@@ -56,6 +56,8 @@ namespace sqlpp::expr {
     };
 
     struct ConditionExpr: Expr {
+        ConditionExpr() = default;
+
         template<typename T>
         ConditionExpr(const char *colName, const char *op, const T& value) {
             append(colName).append(" ").append(op).append(" "); add(value);
