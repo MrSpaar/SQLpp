@@ -6,8 +6,6 @@
 #define SQLPP_TYPES_H
 
 #include <string>
-#include <sstream>
-#include <vector>
 
 
 namespace sqlpp {

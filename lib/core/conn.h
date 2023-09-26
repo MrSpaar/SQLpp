@@ -6,18 +6,15 @@
 #define SQLPP_CONN_H
 
 #include <map>
-#include <variant>
+#include <vector>
 #include <iostream>
 #include <sqlite3.h>
-#include <cstring>
 
 #include "table.h"
 
 
 namespace sqlpp {
     struct SQLValue: std::string {
-        using std::string::string;
-
         template<typename T>
         T as() const {
             if (empty())
@@ -44,8 +41,8 @@ namespace sqlpp {
             return data.at(col.name);
         }
 
-        [[nodiscard]] SQLValue operator[](const std::string &col) const {
-            return data.at(col);
+        [[nodiscard]] SQLValue& operator[](const char *key) {
+            return data.at(key);
         }
     };
 
@@ -83,7 +80,7 @@ namespace sqlpp {
             SQLRow row;
 
             for (int i = 0; i < argc; i++)
-                row.data[colName[i]] = argv[i]? argv[i] : "";
+                row.data[colName[i]] = argv[i]? SQLValue{argv[i]} : SQLValue{""};
 
             result->data.push_back(row);
             return 0;
