@@ -53,7 +53,7 @@ namespace sqlpp::keywords {
 
     struct From: Runnable {
         From& morph(const types::SQLTable &table) {
-            source->append(" FROM ").append(table.name);
+            source->append(" FROM ").append(table);
             return *this;
         }
 

@@ -13,20 +13,20 @@ namespace sqlpp::expr {
         void add(const Expr &expr) { append(expr); }
         void add(const char *item) { append("'").append(item).append("'"); }
         void add(const std::string &item) { append("X'").append(item).append("'"); }
+        template<typename T> void add(const types::SQLCol<T> &item) { append(item); }
         template<typename T> void add(const T& item) { append(std::to_string(item)); }
-        template<typename T> void add(const types::SQLCol<T>& item) { append(item.name); }
         template<typename T> void add(const T& item, const char *sep) { append(sep); add(item); }
     };
 
     struct EqExpr: Expr {
         template<typename T>
-        EqExpr(const char *colName, const T& value) {
+        EqExpr(const std::string &colName, const T& value) {
             append(colName).append(" = "); add(value);
         }
     };
 
     struct AsExpr: Expr {
-        AsExpr(const char *colName, const char *alias) {
+        AsExpr(const std::string &colName, const char *alias) {
             append(colName).append(" AS '").append(alias).append("'");
         }
 
@@ -48,7 +48,7 @@ namespace sqlpp::expr {
 
     template<typename Col, typename... Cols>
     struct TableExpr: Expr {
-        explicit TableExpr(const char *tableName, const Col& col, const Cols&... cols) {
+        explicit TableExpr(const std::string &tableName, const Col& col, const Cols&... cols) {
             append(tableName).append("(").append(col.name);
             ((append(", ").append(cols.name)), ...);
             append(")");
@@ -59,7 +59,7 @@ namespace sqlpp::expr {
         ConditionExpr() = default;
 
         template<typename T>
-        ConditionExpr(const char *colName, const char *op, const T& value) {
+        ConditionExpr(const std::string &colName, const char *op, const T& value) {
             append(colName).append(" ").append(op).append(" "); add(value);
         }
 
@@ -71,8 +71,6 @@ namespace sqlpp::expr {
     };
 
     struct NumExpr: Expr {
-        explicit NumExpr(const char *func) { append(func); }
-
         template<typename T, typename... Ts>
         NumExpr(const char *func, const T& item, const Ts&... items) {
             append(func).append("(");
@@ -81,7 +79,7 @@ namespace sqlpp::expr {
         }
 
         template<typename T>
-        NumExpr(const char *colName, const char *op, const T& item) {
+        NumExpr(const std::string &colName, const char *op, const T& item) {
             append(colName).append(" ").append(op).append(" "); add(item);
         }
 

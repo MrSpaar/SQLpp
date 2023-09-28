@@ -12,10 +12,10 @@
 
 
 #define COL(colName, type)\
-    static sqlpp::types::SQLCol<type> colName(#colName);
+    static sqlpp::types::SQLCol<type> colName{#colName};
 
 #define TABLE(table, cols) namespace table##Table {\
-    static sqlpp::types::SQLTable table(#table);   \
+    static sqlpp::types::SQLTable table{#table};   \
     cols                                           \
 } using namespace table##Table;
 

@@ -7,6 +7,7 @@
 
 #include <map>
 #include <vector>
+#include <charconv>
 #include <iostream>
 #include <sqlite3.h>
 
@@ -17,15 +18,15 @@ namespace sqlpp {
     struct SQLValue: std::string {
         template<typename T>
         T as() const {
-            if (empty())
-                return T();
+            T value;
+            auto res = std::from_chars(data(), data() + size(), value);
 
-            if constexpr (std::is_same_v<T, float>)
-                return std::stof(*this);
-            else if constexpr (std::is_same_v<T, double>)
-                return std::stod(*this);
-            else if constexpr (std::is_same_v<T, int>)
-                return std::stoi(*this);
+            if (res.ec != std::errc())
+                throw std::runtime_error(
+                        "Can't convert '" + *this + "' to '" + typeid(T).name() + "' type"
+                );
+
+            return value;
         }
     };
 
@@ -34,11 +35,11 @@ namespace sqlpp {
 
         template<typename T>
         [[nodiscard]] T operator[](const types::SQLCol<T> &col) const {
-            return data.at(col.name).template as<T>();
+            return data.at(col).template as<T>();
         }
 
         [[nodiscard]] SQLValue& operator[](const types::SQLCol<TEXT> &col) {
-            return data.at(col.name);
+            return data.at(col);
         }
 
         [[nodiscard]] SQLValue& operator[](const char *key) {
@@ -80,7 +81,7 @@ namespace sqlpp {
             SQLRow row;
 
             for (int i = 0; i < argc; i++)
-                row.data[colName[i]] = argv[i]? SQLValue{argv[i]} : SQLValue{""};
+                row.data[colName[i]] = SQLValue{argv[i]};
 
             result->data.push_back(row);
             return 0;

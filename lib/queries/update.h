@@ -42,7 +42,7 @@ namespace sqlpp::keywords::update {
         }
 
         Or& next(const types::SQLTable &table) {
-            source->append(table.name);
+            source->append(table);
             return *this;
         }
 
@@ -54,7 +54,7 @@ namespace sqlpp::keywords::update {
 
     struct Update: Query {
         Update(): Query() { sql.append("UPDATE "); };
-        explicit Update(const types::SQLTable &table): Query() { sql.append("UPDATE ").append(table.name); }
+        explicit Update(const types::SQLTable &table): Query() { sql.append("UPDATE ").append(table); }
 
         Or& or_(const std::string &token) {
             return ((Or*) this)->morph(token);

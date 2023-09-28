@@ -21,7 +21,7 @@ int main() {
     else if (res.empty())
         std::cout << "Empty result" << std::endl;
     else
-        for (SQLRow &row : res)
+        for (auto &row: res)
             std::cout << row[id] << " " << row[name] << " " << row[email] << std::endl;
 
     return 0;

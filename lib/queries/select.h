@@ -148,7 +148,7 @@ namespace sqlpp::keywords::select {
 
     struct Join: Keyword {
         Join& morph(const types::SQLTable &table) {
-            source->append(" JOIN ").append(table.name);
+            source->append(" JOIN ").append(table);
             return *this;
         }
 
@@ -170,7 +170,7 @@ namespace sqlpp::keywords::select {
 
     struct From: SubQuery {
         From& morph(const types::SQLTable &table) {
-            source->append(" FROM ").append(table.name);
+            source->append(" FROM ").append(table);
             return *this;
         }
 
@@ -197,7 +197,7 @@ namespace sqlpp::keywords::select {
 
         template<typename T>
         void append(const types::SQLCol<T> &col, const char *sep = ", ") {
-            sql.append(sep).append(col.name);
+            sql.append(sep).append(col);
         }
         template<typename T>
         void append(const T& item, const char *sep = ", ") {
