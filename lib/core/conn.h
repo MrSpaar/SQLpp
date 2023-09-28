@@ -87,7 +87,7 @@ namespace sqlpp {
             return 0;
         }
 
-        SQLResult exec(std::string *source) const {
+        SQLResult run(std::string *source) const {
             char *errMsg = nullptr;
             SQLResult res;
 

@@ -32,8 +32,6 @@ int main() {
 }
 ```
 
-Only types and syntax are checked. So far, only `DEFAULT VALUES_` (instead of `DEFAULT VALUES`) and `COUT` differ from the original SQLite syntax.
-
 ## Coverage
 
 As this is a proof of concept, the library is incomplete and partially untested :
@@ -49,6 +47,16 @@ As this is a proof of concept, the library is incomplete and partially untested 
 | [Date/Time](https://www.sqlite.org/lang_datefunc.html)                                                               | 🚧          | To be implemented                                  |
 | [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌           | Not planned                                        |
 | [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌           | Not planned                                        |
+
+Some syntax differ from standard SQLite due to the use of C++ macros :
+
+| SQLite            | SQLpp             | Reason                                                    |
+|-------------------|-------------------|-----------------------------------------------------------|
+| `DEFAULT VALUES`  | `DEFAULT VALUES_` | `VALUES` is used for `INSERT`                             |
+| `BETWEEN x AND y` | `BETWEEN(x, y)`   | `AND` is used to chain conditions                         |
+| `=` and `<>`      | `==` and `!=`     | `<>` is not a valid operator and `=` is used for `UPDATE` |
+| `foo as bar`      | `foo AS "bar"`    | Technically possible if the alias is a variable           |
+| `(... END)`       | `(...)`           | `END` is used to end subqueries                           |
 
 ## Runtime
 
@@ -69,7 +77,7 @@ TABLE(user,
 
 int main() {
     Connection conn("../data/test.db");
-    SQLResult res = SELECT id, name, email FROM user EXEC(conn);
+    SQLResult res = SELECT id, name, email FROM user RUN(conn);
 
     if (res.bad()) {
         std::cerr << res.errMsg << std::endl;
@@ -87,4 +95,13 @@ int main() {
 
     return 0;
 }
+```
+
+There is also the possibility to store queries in a variable and execute them later :
+```cpp
+SQLQuery query(
+    SELECT id, name, email FROM user END
+)
+
+SQLResult res = conn.run(query.source);
 ```

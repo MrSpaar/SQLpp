@@ -23,7 +23,6 @@
 #define CHOOSE_3(_1, _2, _3, NAME, ...) NAME
 
 
-#define S(...)                     __VA_ARGS__)
 #define AS                         |=
 #define LIKE                       %=
 #define IN(...)                    .in({__VA_ARGS__})
@@ -145,8 +144,9 @@
 #define DEFAULT                    ).default_
 #define VALUES_                    (
 
+#define END                        )
 #define COUT                       ).cout()
-#define EXEC(conn)                 ).exec(conn)
+#define RUN(conn)                  ).run(conn)
 
 
 #endif //SQLPP_MACROS_H

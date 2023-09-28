@@ -8,6 +8,11 @@
 #include "core/conn.h"
 
 
+namespace sqlpp {
+    namespace keywords { struct Query; }
+    using SQLQuery = keywords::Query;
+}
+
 namespace sqlpp::keywords {
     struct Keyword {
         std::string *source = nullptr;
@@ -18,8 +23,8 @@ namespace sqlpp::keywords {
     };
 
     struct Runnable: Keyword {
-        [[nodiscard]] SQLResult exec(Connection &conn) {
-            return conn.exec(source);
+        [[nodiscard]] SQLResult run(Connection &conn) {
+            return conn.run(source);
         }
     };
 
@@ -32,7 +37,13 @@ namespace sqlpp::keywords {
     struct Query: Keyword {
         std::string sql;
         Query() { source = &sql; }
+
+        explicit Query(const Runnable &runnable) {
+            sql = ((Query&) runnable).sql;
+            source = &sql;
+        }
     };
+
 
     struct Where: Runnable {
         Where& morph(const expr::ConditionExpr &expr) {

@@ -14,7 +14,7 @@ TABLE(user,
 
 int main() {
     Connection conn("../data/test.db");
-    SQLResult res = SELECT id, name, email FROM user WHERE id > 0 EXEC(conn);
+    SQLResult res = SELECT id, name, email FROM user WHERE id > 0 RUN(conn);
 
     if (res.bad())
         std::cerr << res.errMsg << std::endl;
