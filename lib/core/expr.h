@@ -49,14 +49,18 @@ namespace sqlpp::expr {
     template<typename Col, typename... Cols>
     struct TableExpr: Expr {
         explicit TableExpr(const std::string &tableName, const Col& col, const Cols&... cols) {
-            append(tableName).append("(").append(col.name);
-            ((append(", ").append(cols.name)), ...);
+            append(tableName).append("(").append(col);
+            ((append(", ").append(cols)), ...);
             append(")");
         }
     };
 
     struct ConditionExpr: Expr {
         ConditionExpr() = default;
+
+        ConditionExpr(const std::string &colName, const char *value) {
+            append(colName).append(" LIKE ").append(value);
+        }
 
         template<typename T>
         ConditionExpr(const std::string &colName, const char *op, const T& value) {

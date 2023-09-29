@@ -87,12 +87,12 @@ namespace sqlpp {
             return 0;
         }
 
-        SQLResult run(std::string *source) const {
+        SQLResult run(const std::string &source) const {
             char *errMsg = nullptr;
             SQLResult res;
 
             (void) sqlite3_exec(
-                    ptr, source->c_str(),
+                    ptr, source.c_str(),
                     fetch, &res, &errMsg
             );
 

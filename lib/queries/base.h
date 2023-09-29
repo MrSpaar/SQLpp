@@ -9,67 +9,57 @@
 
 
 namespace sqlpp {
-    namespace keywords { struct Query; }
-    using SQLQuery = keywords::Query;
+    namespace keywords { struct Runnable; }
+    using SQLQuery = keywords::Runnable;
 }
 
 namespace sqlpp::keywords {
-    struct Keyword {
-        std::string *source = nullptr;
+    struct Keyword: std::string {
+        using std::string::string;
 
         void cout() const {
-            std::cout << *source << ";" << std::endl;
+            std::cout << *this << ";" << std::endl;
         }
     };
 
     struct Runnable: Keyword {
         [[nodiscard]] SQLResult run(Connection &conn) {
-            return conn.run(source);
+            return conn.run(*this);
         }
     };
 
     struct SubQuery: Runnable {
         [[nodiscard]] expr::AsExpr operator|=(const char *alias) {
-            return {source, alias};
-        }
-    };
-
-    struct Query: Keyword {
-        std::string sql;
-        Query() { source = &sql; }
-
-        explicit Query(const Runnable &runnable) {
-            sql = ((Query&) runnable).sql;
-            source = &sql;
+            return {*this, alias};
         }
     };
 
 
     struct Where: Runnable {
         Where& morph(const expr::ConditionExpr &expr) {
-            source->append(" WHERE ").append(expr);
+            append(" WHERE ").append(expr);
             return *this;
         }
 
         Where& and_(const expr::ConditionExpr &expr) {
-            source->append(" AND ").append(expr);
+            append(" AND ").append(expr);
             return *this;
         }
 
         Where& or_(const expr::ConditionExpr &expr) {
-            source->append(" OR ").append(expr);
+            append(" OR ").append(expr);
             return *this;
         }
     };
 
     struct From: Runnable {
         From& morph(const types::SQLTable &table) {
-            source->append(" FROM ").append(table);
+            append(" FROM ").append(table);
             return *this;
         }
 
         From& morph(const SubQuery &subQuery) {
-            source->append(" FROM (").append(*subQuery.source).append(")");
+            append(" FROM (").append(subQuery).append(")");
             return *this;
         }
 

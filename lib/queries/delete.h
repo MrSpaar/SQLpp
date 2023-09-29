@@ -8,9 +8,9 @@
 #include "queries/base.h"
 
 
-namespace sqlpp::keywords::del {
-    struct Delete: Query {
-        Delete(): Query() { sql.append("DELETE "); }
+namespace sqlpp::keywords::delete_ {
+    struct Delete: Keyword {
+        Delete(): Keyword("DELETE") {}
 
         From& from(const types::SQLTable &table) {
             return ((From*) this)->morph(table);

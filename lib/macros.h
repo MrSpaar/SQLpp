@@ -127,7 +127,7 @@
 #define GROUP                      ).group(
 #define HAVING                     ).having(
 
-#define DELETE                     sqlpp::keywords::del::Delete(
+#define DELETE                     sqlpp::keywords::delete_::Delete(
 
 #define ABORT                      "ABORT ").next(
 #define FAIL                       "FAIL ").next(

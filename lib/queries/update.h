@@ -12,14 +12,13 @@ namespace sqlpp::keywords::update {
     struct Set: Runnable {
         template<typename Item, typename... Items>
         Set& morph(const Item &item, const Items&... items) {
-            source->append(" SET ");
-            append(item, "");
-            (append(items), ...);
+            append(" SET ");
+            add(item); ((append(", "), add(items)), ...);
             return *this;
         }
 
-        void append(const expr::EqExpr &expr, const char *sep = ", ") {
-            source->append(sep).append(expr);
+        void add(const expr::EqExpr &expr) {
+            append(expr);
         }
 
         From& from(const types::SQLTable &table) {
@@ -37,24 +36,24 @@ namespace sqlpp::keywords::update {
 
     struct Or: Keyword {
         Or& morph(const std::string &token) {
-            source->append("OR ").append(token);
+            append("OR ").append(token);
             return *this;
         }
 
         Or& next(const types::SQLTable &table) {
-            source->append(table);
+            append(table);
             return *this;
         }
 
         template<typename... Items>
         Set& set(const Items&... items) {
-            return ((Set*) this)->morph(std::forward<const Items&>(items)...);
+            return ((Set*) this)->morph(items...);
         }
     };
 
-    struct Update: Query {
-        Update(): Query() { sql.append("UPDATE "); };
-        explicit Update(const types::SQLTable &table): Query() { sql.append("UPDATE ").append(table); }
+    struct Update: Keyword {
+        Update(): Keyword("UPDATE ") {};
+        explicit Update(const types::SQLTable &table): Keyword("UPDATE ") { append(table); }
 
         Or& or_(const std::string &token) {
             return ((Or*) this)->morph(token);

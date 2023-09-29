@@ -11,7 +11,7 @@
 namespace sqlpp::keywords::insert {
     struct Default: Runnable {
         Default& morph() {
-            source->append(" DEFAULT VALUES");
+            append(" DEFAULT VALUES");
             return *this;
         }
     };
@@ -20,32 +20,24 @@ namespace sqlpp::keywords::insert {
     struct Values: Runnable {
         template<typename Item, typename... Items>
         Values& morph(const Item &value, const Items&... values) {
-            source->append(" VALUES (");
-            append(value, ""); (append(values), ...);
-            source->append(")");
+            append(" VALUES (");
+            add(value); ((append(", "), add(values)), ...);
+            append(")");
             return *this;
         }
 
-        void append(const char *str, const char *sep = ", ") {
-            source->append(sep).append("'").append(str).append("'");
-        }
-        void append(const std::string &str, const char *sep = ", ") {
-            source->append(sep).append("X'").append(str).append("'");
-        }
         template<typename T>
-        void append(const types::SQLCol<T> &col, const char *sep = ", ") {
-            source->append(sep).append(col.name);
-        }
+        void add(const types::SQLCol<T> &col) { append(col); }
         template<typename T>
-        void append(const T& value, const char *sep = ", ") {
-            source->append(sep).append(std::to_string(value));
-        }
+        void add(const T& value) { append(std::to_string(value)); }
+        void add(const char *str) { append("'").append(str).append("'"); }
+        void add(const std::string &str) { append("X'").append(str).append("'"); }
     };
 
     template<typename... ColTypes>
     struct Into: Keyword {
         Into<ColTypes...>& morph(const expr::TableExpr<ColTypes...> &expr) {
-            source->append("INTO ").append(expr);
+            append("INTO ").append(expr);
             return *this;
         }
 
@@ -54,7 +46,7 @@ namespace sqlpp::keywords::insert {
             if constexpr ((!traits::is_matching_col_v<ValTypes, ColTypes> || ...))
                 static_assert(traits::always_false_v, "Column type mismatch");
 
-            return ((Values<ValTypes...>*) this)->morph(std::forward<const ValTypes&>(values)...);
+            return ((Values<ValTypes...>*) this)->morph(values...);
         }
 
         Default& default_() {
@@ -64,7 +56,7 @@ namespace sqlpp::keywords::insert {
 
     struct Or: Keyword {
         Or &morph(const char *token) {
-            source->append("OR ").append(token);
+            append("OR ").append(token);
             return *this;
         }
 
@@ -78,8 +70,8 @@ namespace sqlpp::keywords::insert {
         }
     };
 
-    struct Insert: Query {
-        explicit Insert(): Query() { sql.append("INSERT "); }
+    struct Insert: Keyword {
+        Insert(): Keyword("INSERT ") {}
 
         Or& or_(const char *token) {
             return ((Or*) this)->morph(token);

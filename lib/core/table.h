@@ -45,6 +45,7 @@ struct sqlpp::types::SQLCol: std::string {
     [[nodiscard]] expr::ConditionExpr operator<=(const ValType &value) const { return cond("<=", value); }
     template<typename ValType>
     [[nodiscard]] expr::ConditionExpr operator>=(const ValType &value) const { return cond(">=", value); }
+    [[nodiscard]] expr::ConditionExpr operator%=(const char *value) const { return {*this, value}; }
 
     [[nodiscard]] expr::ConditionExpr between(const ColType &lower, const ColType &upper) const {
         expr::ConditionExpr expr;

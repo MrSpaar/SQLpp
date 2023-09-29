@@ -99,9 +99,6 @@ int main() {
 
 There is also the possibility to store queries in a variable and execute them later :
 ```cpp
-SQLQuery query(
-    SELECT id, name, email FROM user END
-)
-
-SQLResult res = conn.run(query.source);
+SQLQuery query = SELECT id, name, email FROM user END;
+SQLResult res = conn.run(query.sql);
 ```
