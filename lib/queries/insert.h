@@ -27,11 +27,11 @@ namespace sqlpp::keywords::insert {
         }
 
         template<typename T>
-        void add(const types::SQLCol<T> &col) { append(col); }
+        [[maybe_unused]] void add(const types::SQLCol<T> &col) { append(col); }
         template<typename T>
-        void add(const T& value) { append(std::to_string(value)); }
-        void add(const char *str) { append("'").append(str).append("'"); }
-        void add(const std::string &str) { append("X'").append(str).append("'"); }
+        [[maybe_unused]] void add(const T& value) { append(std::to_string(value)); }
+        [[maybe_unused]] void add(const char *str) { append("'").append(str).append("'"); }
+        [[maybe_unused]] void add(const std::string &str) { append("X'").append(str).append("'"); }
     };
 
     template<typename... ColTypes>
@@ -43,8 +43,10 @@ namespace sqlpp::keywords::insert {
 
         template<typename... ValTypes>
         Values<ValTypes...>& values(const ValTypes&... values) {
-            if constexpr ((!traits::is_matching_col_v<ValTypes, ColTypes> || ...))
-                static_assert(traits::always_false_v, "Column type mismatch");
+            static_assert(
+                    (traits::is_compatible_v<ValTypes, ColTypes> && ...),
+                    "Column type mismatch"
+            );
 
             return ((Values<ValTypes...>*) this)->morph(values...);
         }

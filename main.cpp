@@ -14,9 +14,7 @@ TABLE(user,
 
 int main() {
     Connection conn("../data/test.db");
-
-    SQLQuery query = SELECT id, name, email FROM user WHERE id > 0 END;
-    SQLResult res = conn.run(query); // Or SQLResult res = <MACRO QUERY> RUN(conn)
+    SQLResult res = SELECT id, name, email FROM user WHERE id > 0 RUN(conn);
 
     if (res.bad())
         std::cerr << res.errMsg << std::endl;

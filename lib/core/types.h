@@ -9,10 +9,10 @@
 
 
 namespace sqlpp {
-    typedef int INTEGER;
-    typedef double REAL;
-    typedef const char* TEXT;
-    typedef std::string BLOB;
+    [[maybe_unused]] typedef int INTEGER;
+    [[maybe_unused]] typedef double REAL;
+    [[maybe_unused]] typedef const char* TEXT;
+    [[maybe_unused]] typedef std::string BLOB;
 
     namespace types {
         struct SQLTable;
@@ -20,27 +20,17 @@ namespace sqlpp {
     }
 
     namespace traits {
-        inline constexpr bool always_false_v = false;
+        template<typename V, typename T>
+        struct is_compatible_with_col: std::false_type {};
+        template<typename V, typename T>
+        struct is_compatible_with_col<types::SQLCol<V>, types::SQLCol<T>>: std::is_convertible<V, T> {};
+        template<typename V, typename T>
+        struct is_compatible_with_col<V, types::SQLCol<T>>: std::conditional_t<std::is_same_v<V, T>,
+                                                                               std::true_type,
+                                                                               std::is_convertible<V, T>> {};
 
-        template<typename V, typename T>
-        struct is_matching_col: std::false_type {};
-        template<typename V, typename T>
-        struct is_matching_col<V, types::SQLCol<T>>: std::is_same<V, T> {};
-        template<typename V>
-        struct is_matching_col<V, types::SQLCol<TEXT>>: std::is_convertible<V, TEXT> {};
-
-        template<typename V, typename T>
-        struct is_equivalent_cols: std::false_type {};
-        template<typename V, typename T>
-        struct is_equivalent_cols<types::SQLCol<V>, types::SQLCol<T>>: std::is_convertible<V, T> {};
-
-        template<typename V, typename T>
-        inline constexpr bool is_matching_col_v = is_matching_col<V, T>::value;
-        template<typename V, typename T>
-        inline constexpr bool is_equivalent_cols_v = is_equivalent_cols<V, T>::value;
         template<typename V, typename  T>
-        inline constexpr bool is_compatible_v =
-                is_matching_col_v<V, types::SQLCol<T>> || is_equivalent_cols_v<V, types::SQLCol<T>>;
+        inline constexpr bool is_compatible_v = is_compatible_with_col<V, types::SQLCol<T>>::value;
     }
 }
 

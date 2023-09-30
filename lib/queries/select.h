@@ -191,8 +191,9 @@ namespace sqlpp::keywords::select {
 
         template<typename T>
         void add(const types::SQLCol<T> &col) { append(col); }
+        template<typename T>
+        void add(const expr::MathExpr<T> &expr) { append(expr); }
         void add(const expr::AsExpr &expr) { append(expr); }
-        void add(const expr::NumExpr &expr) { append(expr); }
         void add(int value) { append(std::to_string(value)); }
         void add(double value) { append(std::to_string(value)); }
         void add(const char *str) { append("'").append(str).append("'"); }

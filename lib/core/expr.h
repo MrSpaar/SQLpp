@@ -10,12 +10,13 @@
 
 namespace sqlpp::expr {
     struct Expr: std::string {
-        void add(const Expr &expr) { append(expr); }
-        void add(const char *item) { append("'").append(item).append("'"); }
-        void add(const std::string &item) { append("X'").append(item).append("'"); }
-        template<typename T> void add(const types::SQLCol<T> &item) { append(item); }
-        template<typename T> void add(const T& item) { append(std::to_string(item)); }
-        template<typename T> void add(const T& item, const char *sep) { append(sep); add(item); }
+        [[maybe_unused]] void add(const Expr &expr) { append(expr); }
+        [[maybe_unused]] void add(const char *item) { append("'").append(item).append("'"); }
+        [[maybe_unused]] void add(const std::string &item) { append("X'").append(item).append("'"); }
+        template<typename T>
+        [[maybe_unused]] void add(const types::SQLCol<T> &item) { append(item); }
+        template<typename T>
+        [[maybe_unused]] void add(const T& item) { append(std::to_string(item)); }
     };
 
     struct EqExpr: Expr {
@@ -66,37 +67,26 @@ namespace sqlpp::expr {
         ConditionExpr(const std::string &colName, const char *op, const T& value) {
             append(colName).append(" ").append(op).append(" "); add(value);
         }
-
-        template<typename T>
-        ConditionExpr& morph(const char *op, const T& value) {
-            append(" ").append(op).append(" "); add(value);
-            return *this;
-        }
     };
 
-    struct NumExpr: Expr {
-        template<typename T, typename... Ts>
-        NumExpr(const char *func, const T& item, const Ts&... items) {
-            append(func).append("(");
-            add(item); ((add(items, ", ")), ...);
-            append(")");
-        }
-
+    template<typename ColType>
+    struct MathExpr: Expr {
         template<typename T>
-        NumExpr(const std::string &colName, const char *op, const T& item) {
+        MathExpr(const std::string &colName, const char *op, const T& item) {
             append(colName).append(" ").append(op).append(" "); add(item);
         }
 
-        template<typename T>
-        NumExpr& operator+(const T& item) { append(" + "); add(item); return *this; }
-        template<typename T>
-        NumExpr& operator-(const T& item) { append(" - "); add(item); return *this; }
-        template<typename T>
-        NumExpr& operator*(const T& item) { append(" * "); add(item); return *this; }
-        template<typename T>
-        NumExpr& operator/(const T& item) { append(" / "); add(item); return *this; }
-        template<typename T>
-        NumExpr& operator%(const T& item) { append(" % "); add(item); return *this; }
+        template<typename T, typename... Ts>
+        MathExpr(const char *func, const T& item, const Ts&... items) {
+            static_assert(
+                    (traits::is_compatible_v<T, ColType> && ... && traits::is_compatible_v<Ts, ColType>),
+                    "Incompatible types"
+            );
+
+            append(func).append("(");
+            add(item); ((append(", "), add(items)), ...);
+            append(")");
+        }
 
         AsExpr operator|=(const char *alias) {
             insert(0, "(");
@@ -104,17 +94,64 @@ namespace sqlpp::expr {
         }
 
         template<typename T>
-        ConditionExpr& operator==(const T& item) { return ((ConditionExpr*) this)->morph("=", item); }
+        MathExpr& operator+(const T& item) { return op(" + ", item); }
         template<typename T>
-        ConditionExpr& operator!=(const T& item) { return ((ConditionExpr*) this)->morph("!=", item); }
+        MathExpr& operator-(const T& item) { return op(" - ", item); }
         template<typename T>
-        ConditionExpr& operator<(const T& item) { return ((ConditionExpr*) this)->morph("<", item); }
+        MathExpr& operator*(const T& item) { return op(" * ", item); }
         template<typename T>
-        ConditionExpr& operator>(const T& item) { return ((ConditionExpr*) this)->morph(">", item); }
+        MathExpr& operator/(const T& item) { return op(" / ", item); }
         template<typename T>
-        ConditionExpr& operator<=(const T& item) { return ((ConditionExpr*) this)->morph("<=", item); }
+        MathExpr& operator%(const T& item) { return op(" % ", item); }
+
         template<typename T>
-        ConditionExpr& operator>=(const T& item) { return ((ConditionExpr*) this)->morph(">=", item); }
+        ConditionExpr& operator==(const T& item) { return cond(" = ", item); }
+        template<typename T>
+        ConditionExpr& operator!=(const T& item) { return cond(" != ", item); }
+        template<typename T>
+        ConditionExpr& operator<(const T& item) { return cond(" < ", item); }
+        template<typename T>
+        ConditionExpr& operator>(const T& item) { return cond(" > ", item); }
+        template<typename T>
+        ConditionExpr& operator<=(const T& item) { return cond(" <= ", item); }
+        template<typename T>
+        ConditionExpr& operator>=(const T& item) { return cond(" >= ", item); }
+
+        template<typename T, typename V>
+        expr::ConditionExpr& between(const T &lower, const V &upper) {
+            static_assert(
+                    traits::is_compatible_v<T, ColType> && traits::is_compatible_v<V, ColType>,
+                    "Incompatible types"
+            );
+
+            append(" BETWEEN "); add(lower); append(" AND "); add(upper);
+            return *(expr::ConditionExpr*) this;
+        }
+
+        template<typename T, typename... Ts>
+        expr::ConditionExpr& in(const T &value, const Ts&... values) {
+            static_assert((traits::is_compatible_v<Ts, ColType> && ...), "Incompatible types");
+
+            append(" IN ("); add(value);
+            ((append(", "), add(values)), ...);
+            append(")");
+
+            return *(expr::ConditionExpr*) this;
+        }
+
+        template<typename T>
+        ConditionExpr& cond(const char *op, const T& item) {
+            static_assert(traits::is_compatible_v<T, ColType>, "Incompatible types");
+            append(op); add(item);
+            return *(ConditionExpr*) this;
+        }
+
+        template<typename T>
+        MathExpr& op(const char *op, const T& item) {
+            static_assert(traits::is_compatible_v<T, ColType>, "Incompatible types");
+            append(op); add(item);
+            return *this;
+        }
     };
 }
 

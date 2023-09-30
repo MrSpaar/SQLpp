@@ -23,15 +23,15 @@ struct sqlpp::types::SQLCol: std::string {
     [[nodiscard]] expr::AsExpr operator|=(const char *alias) const { return {*this, alias}; }
 
     template<typename ValType>
-    [[nodiscard]] expr::NumExpr operator+(const ValType &value) const { return op("+", value); }
+    [[nodiscard]] expr::MathExpr<ColType> operator+(const ValType &value) const { return op("+", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumExpr operator-(const ValType &value) const { return op("-", value); }
+    [[nodiscard]] expr::MathExpr<ColType> operator-(const ValType &value) const { return op("-", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumExpr operator*(const ValType &value) const { return op("*", value); }
+    [[nodiscard]] expr::MathExpr<ColType> operator*(const ValType &value) const { return op("*", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumExpr operator/(const ValType &value) const { return op("/", value); }
+    [[nodiscard]] expr::MathExpr<ColType> operator/(const ValType &value) const { return op("/", value); }
     template<typename ValType>
-    [[nodiscard]] expr::NumExpr operator%(const ValType &value) const { return op("%", value); }
+    [[nodiscard]] expr::MathExpr<ColType> operator%(const ValType &value) const { return op("%", value); }
 
     template<typename ValType>
     [[nodiscard]] expr::ConditionExpr operator==(const ValType &value) const { return cond("=", value); }
@@ -47,45 +47,55 @@ struct sqlpp::types::SQLCol: std::string {
     [[nodiscard]] expr::ConditionExpr operator>=(const ValType &value) const { return cond(">=", value); }
     [[nodiscard]] expr::ConditionExpr operator%=(const char *value) const { return {*this, value}; }
 
-    [[nodiscard]] expr::ConditionExpr between(const ColType &lower, const ColType &upper) const {
+    template<typename T, typename V>
+    [[nodiscard]] expr::ConditionExpr between(const T &lower, const V &upper) const {
+        static_assert(
+                traits::is_compatible_v<T, ColType> && traits::is_compatible_v<V, ColType>,
+                "Invalid BETWEEN clause"
+        );
+
         expr::ConditionExpr expr;
-        expr.append(*this).append(" BETWEEN "); expr.add(lower).append(" AND "); expr.add(upper);
+
+        expr.append(*this).append(" BETWEEN ");
+        expr.add(lower);
+        expr.append(" AND ");
+        expr.add(upper);
+
         return expr;
     }
 
-    [[nodiscard]] expr::ConditionExpr in(const std::initializer_list<ColType> &values) const {
+    template<typename T, typename... Ts>
+    [[nodiscard]] expr::ConditionExpr in(const T &value, const Ts&... values) const {
+        static_assert(
+                (traits::is_compatible_v<T, ColType> && ... && traits::is_compatible_v<Ts, ColType>),
+                "Invalid IN clause"
+        );
+
         expr::ConditionExpr expr;
+
         expr.append(*this).append(" IN (");
-
-        for (const ColType &value : values)
-            expr.add(value).append(", ");
-
-        expr.pop_back(); expr.pop_back();
+        expr.add(value);
+        ((expr.append(", "), expr.add(values)), ...);
         expr.append(")");
+
         return expr;
     }
 
     template<typename T>
     [[nodiscard]] expr::EqExpr operator=(const T& value) {
-        if constexpr (!traits::is_compatible_v<T, ColType>)
-            static_assert(traits::always_false_v, "Invalid assignment");
-
+        static_assert(traits::is_compatible_v<T, ColType>, "Invalid assignment");
         return {*this, value};
     }
 
     template<typename T>
-    expr::NumExpr op(const char *op, const T& value) const {
-        if constexpr (!traits::is_compatible_v<T, ColType>)
-            static_assert(traits::always_false_v, "Invalid arithmetic operation");
-
+    expr::MathExpr<ColType> op(const char *op, const T& value) const {
+        static_assert(traits::is_compatible_v<T, ColType>, "Invalid arithmetic operation");
         return {*this, op, value};
     }
 
     template<typename T>
     expr::ConditionExpr cond(const char *cond, const T& value) const {
-        if constexpr (!traits::is_compatible_v<T, ColType>)
-            static_assert(traits::always_false_v, "Invalid condition");
-
+        static_assert(traits::is_compatible_v<T, ColType>, "Invalid condition");
         return {*this, cond, value};
     }
 };
