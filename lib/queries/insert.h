@@ -20,8 +20,8 @@ namespace sqlpp::keywords::insert {
     struct Values: Runnable {
         template<typename Item, typename... Items>
         Values& morph(const Item &value, const Items&... values) {
-            append(" VALUES (");
-            add(value); ((append(", "), add(values)), ...);
+            append(" VALUES ("); add(value);
+            ((append(", "), add(values)), ...);
             append(")");
             return *this;
         }
@@ -43,11 +43,7 @@ namespace sqlpp::keywords::insert {
 
         template<typename... ValTypes>
         Values<ValTypes...>& values(const ValTypes&... values) {
-            static_assert(
-                    (traits::is_compatible_v<ValTypes, ColTypes> && ...),
-                    "Column type mismatch"
-            );
-
+            static_assert((traits::is_compatible_v<ValTypes, ColTypes> && ...), "Column type mismatch");
             return ((Values<ValTypes...>*) this)->morph(values...);
         }
 

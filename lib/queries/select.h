@@ -27,15 +27,19 @@ namespace sqlpp::keywords::select {
     };
 
     struct OrderBy: SubQuery {
-        template<typename Item, typename... Items>
-        OrderBy& morph(const Item &item, const Items&... items) {
-            add(item); ((append(", "), add(items)), ...);
+        template<typename T, typename... Ts>
+        OrderBy& morph(const T &item, const Ts&... items) {
+            static_assert((
+                      (std::is_same_v<T, expr::OrderExpr> || traits::is_sql_col_v<T>)
+                      && ... && (std::is_same_v<Ts, expr::OrderExpr> || traits::is_sql_col_v<Ts>)
+                  ), "Items must be of type expr::OrderExpr"
+            );
+
+            append(item);
+            ((append(", "), append(items)), ...);
+
             return *this;
         }
-
-        template<typename T>
-        void add(const types::SQLCol<T> &col) { append(col); }
-        void add(const expr::OrderExpr &expr) { append(expr); }
 
         Limit& limit(int limit) { return ((Limit*) this)->morph(limit); }
         Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
@@ -67,14 +71,15 @@ namespace sqlpp::keywords::select {
     struct GroupBy: SubQuery {
         template<typename Item, typename... Items>
         GroupBy& morph(const Item& item, const Items&... items) {
-            add(item, "");
-            (add(items), ...);
-            return *this;
-        }
+            static_assert(
+                    (traits::is_sql_col_v<Item> && ... && traits::is_sql_col_v<Items>),
+                    "Items must be of type types::SQLCol"
+            );
 
-        template<typename T>
-        void add(const types::SQLCol<T> &col, const char *sep = ", ") {
-            append(sep).append(col.name);
+            append(item);
+            ((append(", "), append(items)), ...);
+
+            return *this;
         }
 
         Order& order() { return ((Order*) this)->morph(); }
@@ -186,18 +191,19 @@ namespace sqlpp::keywords::select {
     struct Select: Keyword {
         template<typename Item, typename... Items>
         explicit Select(const Item& item, const Items&... items): Keyword("SELECT ") {
-            add(item); ((append(", "), add(items)), ...);
+            add(item);
+            ((append(", "), add(items)), ...);
         }
 
         template<typename T>
-        void add(const types::SQLCol<T> &col) { append(col); }
+        [[maybe_unused]] void add(const types::SQLCol<T> &col) { append(col); }
         template<typename T>
-        void add(const expr::MathExpr<T> &expr) { append(expr); }
-        void add(const expr::AsExpr &expr) { append(expr); }
-        void add(int value) { append(std::to_string(value)); }
-        void add(double value) { append(std::to_string(value)); }
-        void add(const char *str) { append("'").append(str).append("'"); }
-        void add(const SubQuery &subQuery) { append("(").append(subQuery).append(")"); }
+        [[maybe_unused]] void add(const expr::MathExpr<T> &expr) { append(expr); }
+        [[maybe_unused]] void add(const expr::AsExpr &expr) { append(expr); }
+        [[maybe_unused]] void add(int value) { append(std::to_string(value)); }
+        [[maybe_unused]] void add(double value) { append(std::to_string(value)); }
+        [[maybe_unused]] void add(const char *str) { append("'").append(str).append("'"); }
+        [[maybe_unused]] void add(const SubQuery &subQuery) { append("(").append(subQuery).append(")"); }
 
         From& from(const types::SQLTable &table) {
             return ((From*) this)->morph(table);

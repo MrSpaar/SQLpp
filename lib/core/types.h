@@ -20,6 +20,13 @@ namespace sqlpp {
     }
 
     namespace traits {
+        template<typename T>
+        struct is_sql_col: std::false_type {};
+        template<typename T>
+        struct is_sql_col<types::SQLCol<T>>: std::true_type {};
+        template<typename T>
+        inline constexpr bool is_sql_col_v = is_sql_col<T>::value;
+
         template<typename V, typename T>
         struct is_compatible_with_col: std::false_type {};
         template<typename V, typename T>

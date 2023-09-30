@@ -10,7 +10,7 @@
 
 namespace sqlpp {
     namespace keywords { struct Runnable; }
-    using SQLQuery = keywords::Runnable;
+    using SQLQuery [[maybe_unused]] = keywords::Runnable;
 }
 
 namespace sqlpp::keywords {
@@ -33,7 +33,6 @@ namespace sqlpp::keywords {
             return {*this, alias};
         }
     };
-
 
     struct Where: Runnable {
         Where& morph(const expr::ConditionExpr &expr) {

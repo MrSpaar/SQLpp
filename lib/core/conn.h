@@ -73,6 +73,19 @@ namespace sqlpp {
             }
         }
 
+        [[nodiscard]] SQLResult run(const std::string &source) const {
+            char *errMsg = nullptr;
+            SQLResult res;
+
+            (void) sqlite3_exec(
+                    ptr, source.c_str(),
+                    fetch, &res, &errMsg
+            );
+
+            res.errMsg = errMsg;
+            return res;
+        }
+
         static int fetch(void *res, int argc, char **argv, char **colName) {
             if (argc == 0)
                 return 0;
@@ -85,19 +98,6 @@ namespace sqlpp {
 
             result->data.push_back(row);
             return 0;
-        }
-
-        SQLResult run(const std::string &source) const {
-            char *errMsg = nullptr;
-            SQLResult res;
-
-            (void) sqlite3_exec(
-                    ptr, source.c_str(),
-                    fetch, &res, &errMsg
-            );
-
-            res.errMsg = errMsg;
-            return res;
         }
     };
 }

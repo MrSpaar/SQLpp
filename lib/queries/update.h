@@ -12,13 +12,16 @@ namespace sqlpp::keywords::update {
     struct Set: Runnable {
         template<typename Item, typename... Items>
         Set& morph(const Item &item, const Items&... items) {
-            append(" SET ");
-            add(item); ((append(", "), add(items)), ...);
-            return *this;
-        }
+            static_assert(
+                    (std::is_same_v<Item, expr::EqExpr> && ... && std::is_same_v<Items, expr::EqExpr>),
+                    "All items must be of type EqExpr"
+            );
 
-        void add(const expr::EqExpr &expr) {
-            append(expr);
+            append(" SET ");
+            append(item);
+            ((append(", "), append(items)), ...);
+
+            return *this;
         }
 
         From& from(const types::SQLTable &table) {
