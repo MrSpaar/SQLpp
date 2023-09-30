@@ -35,14 +35,23 @@ namespace sqlpp {
 
         template<typename T>
         [[nodiscard]] T operator[](const types::SQLCol<T> &col) const {
+            if (data.find(col) == data.end())
+                throw std::runtime_error("Column '" + col + "' not found");
+
             return data.at(col).template as<T>();
         }
 
         [[nodiscard]] SQLValue& operator[](const types::SQLCol<TEXT> &col) {
+            if (data.find(col) == data.end())
+                throw std::runtime_error("Column '" + col + "' not found");
+
             return data.at(col);
         }
 
         [[nodiscard]] SQLValue& operator[](const char *key) {
+            if (data.find(key) == data.end())
+                throw std::runtime_error("Column '" + std::string(key) + "' not found");
+
             return data.at(key);
         }
     };
