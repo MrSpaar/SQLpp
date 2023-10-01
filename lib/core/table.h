@@ -23,15 +23,15 @@ struct sqlpp::types::SQLCol: std::string {
     [[nodiscard]] expr::AsExpr operator|=(const char *alias) const { return {*this, alias}; }
 
     template<typename ValType>
-    [[nodiscard]] expr::MathExpr<ColType> operator+(const ValType &value) const { return op("+", value); }
+    [[nodiscard]] expr::MathExpr<ColType, ColType> operator+(const ValType &value) const { return op("+", value); }
     template<typename ValType>
-    [[nodiscard]] expr::MathExpr<ColType> operator-(const ValType &value) const { return op("-", value); }
+    [[nodiscard]] expr::MathExpr<ColType, ColType> operator-(const ValType &value) const { return op("-", value); }
     template<typename ValType>
-    [[nodiscard]] expr::MathExpr<ColType> operator*(const ValType &value) const { return op("*", value); }
+    [[nodiscard]] expr::MathExpr<ColType, ColType> operator*(const ValType &value) const { return op("*", value); }
     template<typename ValType>
-    [[nodiscard]] expr::MathExpr<ColType> operator/(const ValType &value) const { return op("/", value); }
+    [[nodiscard]] expr::MathExpr<ColType, ColType> operator/(const ValType &value) const { return op("/", value); }
     template<typename ValType>
-    [[nodiscard]] expr::MathExpr<ColType> operator%(const ValType &value) const { return op("%", value); }
+    [[nodiscard]] expr::MathExpr<ColType, ColType> operator%(const ValType &value) const { return op("%", value); }
 
     template<typename ValType>
     [[nodiscard]] expr::ConditionExpr operator==(const ValType &value) const { return cond("=", value); }
@@ -88,7 +88,7 @@ struct sqlpp::types::SQLCol: std::string {
     }
 
     template<typename T>
-    expr::MathExpr<ColType> op(const char *op, const T& value) const {
+    expr::MathExpr<ColType, ColType> op(const char *op, const T& value) const {
         static_assert(traits::is_compatible_v<T, ColType>, "Invalid arithmetic operation");
         return {*this, op, value};
     }

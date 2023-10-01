@@ -69,7 +69,7 @@ namespace sqlpp::expr {
         }
     };
 
-    template<typename ColType>
+    template<typename ItemType, typename ReturnType>
     struct MathExpr: Expr {
         template<typename T>
         MathExpr(const std::string &colName, const char *op, const T& item) {
@@ -79,7 +79,7 @@ namespace sqlpp::expr {
         template<typename T, typename... Ts>
         MathExpr(const char *func, const T& item, const Ts&... items) {
             static_assert(
-                    (traits::is_compatible_v<T, ColType> && ... && traits::is_compatible_v<Ts, ColType>),
+                    (traits::is_compatible_v<T, ItemType> && ... && traits::is_compatible_v<Ts, ItemType>),
                     "Incompatible types"
             );
 
@@ -120,7 +120,7 @@ namespace sqlpp::expr {
         template<typename T, typename V>
         expr::ConditionExpr& between(const T &lower, const V &upper) {
             static_assert(
-                    traits::is_compatible_v<T, ColType> && traits::is_compatible_v<V, ColType>,
+                    traits::is_compatible_v<T, ReturnType> && traits::is_compatible_v<V, ReturnType>,
                     "Incompatible types"
             );
 
@@ -130,7 +130,7 @@ namespace sqlpp::expr {
 
         template<typename T, typename... Ts>
         expr::ConditionExpr& in(const T &value, const Ts&... values) {
-            static_assert((traits::is_compatible_v<Ts, ColType> && ...), "Incompatible types");
+            static_assert((traits::is_compatible_v<Ts, ReturnType> && ...), "Incompatible types");
 
             append(" IN ("); add(value);
             ((append(", "), add(values)), ...);
@@ -141,14 +141,14 @@ namespace sqlpp::expr {
 
         template<typename T>
         ConditionExpr& cond(const char *op, const T& item) {
-            static_assert(traits::is_compatible_v<T, ColType>, "Incompatible types");
+            static_assert(traits::is_compatible_v<T, ReturnType>, "Incompatible types");
             append(op); add(item);
             return *(ConditionExpr*) this;
         }
 
         template<typename T>
         MathExpr& op(const char *op, const T& item) {
-            static_assert(traits::is_compatible_v<T, ColType>, "Incompatible types");
+            static_assert(traits::is_compatible_v<T, ReturnType>, "Incompatible types");
             append(op); add(item);
             return *this;
         }

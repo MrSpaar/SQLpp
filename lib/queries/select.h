@@ -197,8 +197,8 @@ namespace sqlpp::keywords::select {
 
         template<typename T>
         [[maybe_unused]] void add(const types::SQLCol<T> &col) { append(col); }
-        template<typename T>
-        [[maybe_unused]] void add(const expr::MathExpr<T> &expr) { append(expr); }
+        template<typename T, typename V>
+        [[maybe_unused]] void add(const expr::MathExpr<T, V> &expr) { append(expr); }
         [[maybe_unused]] void add(const expr::AsExpr &expr) { append(expr); }
         [[maybe_unused]] void add(int value) { append(std::to_string(value)); }
         [[maybe_unused]] void add(double value) { append(std::to_string(value)); }
