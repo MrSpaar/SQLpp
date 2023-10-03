@@ -37,15 +37,12 @@ namespace sqlpp {
         struct is_compatible_with_col<V, types::SQLCol<T>>: std::is_convertible<V, T> {};
         template<typename V, typename T>
         struct is_compatible_with_col<types::SQLCol<V>, types::SQLCol<T>>: std::is_convertible<V, T> {};
-
         template<typename V, typename T>
-        struct is_expr_compatible: std::false_type {};
-        template<typename V, typename T>
-        struct is_expr_compatible<expr::MathExpr<std::any, V>, expr::MathExpr<std::any, T>>: std::is_convertible<V, T> {};
+        struct is_compatible_with_col<expr::MathExpr<std::any, V>, expr::MathExpr<std::any, T>>: std::is_convertible<V, T> {};
 
         template<typename V, typename  T>
         inline constexpr bool is_compatible_v = is_compatible_with_col<V, types::SQLCol<T>>::value
-                                                || is_expr_compatible<V, expr::MathExpr<std::any, T>>::value;
+                                                || is_compatible_with_col<V, expr::MathExpr<std::any, T>>::value;
     }
 }
 
