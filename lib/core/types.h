@@ -19,6 +19,10 @@ namespace sqlpp {
         template<typename T> struct SQLCol;
     }
 
+    namespace expr {
+        template<typename ItemType, typename ReturnType> struct MathExpr;
+    }
+
     namespace traits {
         template<typename T>
         struct is_sql_col: std::false_type {};
@@ -30,14 +34,18 @@ namespace sqlpp {
         template<typename V, typename T>
         struct is_compatible_with_col: std::false_type {};
         template<typename V, typename T>
-        struct is_compatible_with_col<types::SQLCol<V>, types::SQLCol<T>>: std::is_convertible<V, T> {};
+        struct is_compatible_with_col<V, types::SQLCol<T>>: std::is_convertible<V, T> {};
         template<typename V, typename T>
-        struct is_compatible_with_col<V, types::SQLCol<T>>: std::conditional_t<std::is_same_v<V, T>,
-                                                                               std::true_type,
-                                                                               std::is_convertible<V, T>> {};
+        struct is_compatible_with_col<types::SQLCol<V>, types::SQLCol<T>>: std::is_convertible<V, T> {};
+
+        template<typename V, typename T>
+        struct is_expr_compatible: std::false_type {};
+        template<typename V, typename T>
+        struct is_expr_compatible<expr::MathExpr<std::any, V>, expr::MathExpr<std::any, T>>: std::is_convertible<V, T> {};
 
         template<typename V, typename  T>
-        inline constexpr bool is_compatible_v = is_compatible_with_col<V, types::SQLCol<T>>::value;
+        inline constexpr bool is_compatible_v = is_compatible_with_col<V, types::SQLCol<T>>::value
+                                                || is_expr_compatible<V, expr::MathExpr<std::any, T>>::value;
     }
 }
 
