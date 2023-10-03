@@ -103,7 +103,7 @@ namespace sqlpp {
             SQLRow row;
 
             for (int i = 0; i < argc; i++)
-                row.data[colName[i]] = SQLValue{argv[i]};
+                row.data[colName[i]] = argv[i] ? SQLValue{argv[i]} : SQLValue{};
 
             result->data.push_back(row);
             return 0;

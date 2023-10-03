@@ -188,9 +188,10 @@ namespace sqlpp::keywords::select {
         Offset& limit(int limit, int offset) { return ((Limit*) this)->morph(limit, offset); }
     };
 
-    struct Select: Keyword {
+    struct Select: SubQuery {
         template<typename Item, typename... Items>
-        explicit Select(const Item& item, const Items&... items): Keyword("SELECT ") {
+        explicit Select(const Item& item, const Items&... items) {
+            append("SELECT ");
             add(item);
             ((append(", "), add(items)), ...);
         }

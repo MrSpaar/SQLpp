@@ -10,13 +10,16 @@
 
 namespace sqlpp::expr {
     struct Expr: std::string {
-        [[maybe_unused]] void add(const Expr &expr) { append(expr); }
         [[maybe_unused]] void add(const char *item) { append("'").append(item).append("'"); }
         [[maybe_unused]] void add(const std::string &item) { append("X'").append(item).append("'"); }
+
         template<typename T>
-        [[maybe_unused]] void add(const types::SQLCol<T> &item) { append(item); }
-        template<typename T>
-        [[maybe_unused]] void add(const T& item) { append(std::to_string(item)); }
+        [[maybe_unused]] void add(const T& item) {
+            if constexpr (std::is_base_of_v<std::string, T>)
+                append(item);
+            else
+                append(std::to_string(item));
+        }
     };
 
     struct EqExpr: Expr {
@@ -71,6 +74,10 @@ namespace sqlpp::expr {
 
     template<typename ItemType, typename ReturnType>
     struct MathExpr: Expr {
+        explicit MathExpr(const char *func) {
+            append(func).append("()");
+        }
+
         template<typename T>
         MathExpr(const std::string &colName, const char *op, const T& item) {
             append(colName).append(" ").append(op).append(" "); add(item);

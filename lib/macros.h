@@ -35,7 +35,7 @@
 #define SUBSTR_2(x, y)             sqlpp::expr::MathExpr<std::string, std::string>("SUBSTR", x, y)
 #define SUBSTR_3(x, y, z)          sqlpp::expr::MathExpr<std::string, std::string>("SUBSTR", x, y, z)
 #define REPLACE_(x, y, z)          sqlpp::expr::MathExpr<std::string, std::string>("REPLACE", x, y, z)
-#define CHAR(...)                  sqlpp::expr::MathExpr<std::string, std::string>("CHAR", __VA_ARGS__)
+#define CHAR(...)                  sqlpp::expr::MathExpr<std::string, std::string>("CHAR", ##__VA_ARGS__)
 #define SOUNDEX(x)                 sqlpp::expr::MathExpr<std::string, std::string>("SOUNDEX", x)
 #define HEX(x)                     sqlpp::expr::MathExpr<std::string, std::string>("HEX", x)
 #define UNHEX_1(x)                 sqlpp::expr::MathExpr<std::string, std::string>("UNHEX", x)
@@ -51,6 +51,15 @@
 #define INSTR(x, y)                sqlpp::expr::MathExpr<std::any, std::any>("INSTR", x, y)
 #define NULLIF(x, y)               sqlpp::expr::MathExpr<std::any, std::any>("NULLIF", x, y)
 #define COALESCE(X, ...)           sqlpp::expr::MathExpr<std::any, std::any>("COALESCE", X, __VA_ARGS__)
+#define GLOB(x, y)                 sqlpp::expr::MathExpr<std::any, std::any>("GLOB", x, y)
+
+#define DATE(...)                  sqlpp::expr::MathExpr<std::any, std::any>("DATE", ##__VA_ARGS__)
+#define TIME(...)                  sqlpp::expr::MathExpr<std::any, std::any>("TIME", ##__VA_ARGS__)
+#define DATETIME(...)              sqlpp::expr::MathExpr<std::any, std::any>("DATETIME", ##__VA_ARGS__)
+#define JULIANDAY(...)             sqlpp::expr::MathExpr<std::any, std::any>("JULIANDAY", ##__VA_ARGS__)
+#define UNIXEPOCH(...)             sqlpp::expr::MathExpr<std::any, std::any>("UNIXEPOCH", ##__VA_ARGS__)
+#define STRFTIME(format, ...)      sqlpp::expr::MathExpr<std::any, std::any>("STRFTIME", format, ##__VA_ARGS__)
+#define TIMEDIFF(x, y)             sqlpp::expr::MathExpr<std::any, std::any>("TIMEDIFF", x, y)
 
 #define UNICODE(x)                 sqlpp::expr::MathExpr<std::any, int>("UNICODE", x)
 #define COUNT(x)                   sqlpp::expr::MathExpr<std::any, int>("COUNT", x)
@@ -58,6 +67,8 @@
 #define OCTET_LENGTH(x)            sqlpp::expr::MathExpr<std::any, int>("OCTET_LENGTH", x)
 #define QUOTE(x)                   sqlpp::expr::MathExpr<std::any, std::string>("QUOTE", x)
 #define TYPEOF(x)                  sqlpp::expr::MathExpr<std::any, std::string>("TYPEOF", x)
+#define RANDOMBLOB(x)              sqlpp::expr::MathExpr<int, std::string>("RANDOMBLOB", x)
+#define ZEROBLOB(x)                sqlpp::expr::MathExpr<int, std::string>("ZEROBLOB", x)
 
 #define SUM(x)                     sqlpp::expr::MathExpr<int, int>("SUM", x)
 #define AVG(x)                     sqlpp::expr::MathExpr<int, int>("AVG", x)
@@ -98,9 +109,9 @@
 #define ROUND(x, y)                sqlpp::expr::MathExpr<int, int>("ROUND", x, y)
 #define LOG(...)                   CHOOSE_2(__VA_ARGS__, LOGB, LOG10_2)(__VA_ARGS__)
 
-#define CHANGES()                  sqlpp::expr::MathExpr<std::any, std::any>("CHANGES()")
-#define TOTAL_CHANGES()            sqlpp::expr::MathExpr<std::any, std::any>("TOTAL_CHANGES()")
-#define LAST_INSERT_ROWID()        sqlpp::expr::MathExpr<std::any, std::any>("LAST_INSERT_ROWID()")
+#define CHANGES()                  sqlpp::expr::MathExpr<std::any, std::any>("CHANGES")
+#define TOTAL_CHANGES()            sqlpp::expr::MathExpr<std::any, std::any>("TOTAL_CHANGES")
+#define LAST_INSERT_ROWID()        sqlpp::expr::MathExpr<std::any, std::any>("LAST_INSERT_ROWID")
 
 
 #define AS                         |=
