@@ -157,6 +157,7 @@
 #define DEFAULT                    ).default_
 #define VALUES_                    (
 
+#define X(str)                     std::string(str)
 #define END                        )
 #define COUT                       ).cout()
 #define RUN(conn)                  ).run(conn)
