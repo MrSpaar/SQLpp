@@ -45,20 +45,21 @@ As this is a proof of concept, the library is incomplete and partially untested 
 | [Math](https://www.sqlite.org/lang_mathfunc.html)                                                                    | ✔️          | Full support                                       |
 | [Core functions](https://www.sqlite.org/lang_corefunc.html)                                                          | ✔️          | Full support                                       |
 | [Date/Time](https://www.sqlite.org/lang_datefunc.html)                                                               | ✔️          | Full support                                       |
-| [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌           | Not planned                                        |
-| [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌           | Not planned                                        |
+| [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌         | Not planned                                        |
+| [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌         | Not planned                                        |
 
 Some syntax differ from standard SQLite due to the use of C++ macros :
 
-| SQLite            | SQLpp             | Reason                                                    |
-|-------------------|-------------------|-----------------------------------------------------------|
-| `DEFAULT VALUES`  | `DEFAULT VALUES_` | `VALUES` is used for `INSERT`                             |
-| `BETWEEN x AND y` | `BETWEEN(x, y)`   | `AND` is used to chain conditions                         |
-| `'this is a text' | "this is a text"` | `'` is used to delimit single characters                  |
-| `=` and `<>`      | `==` and `!=`     | `<>` is not a valid operator and `=` is used for `UPDATE` |
-| `foo as bar`      | `foo AS "bar"`    | Technically possible if the alias is a variable           |
-| `(... END)`       | `(...)`           | `END` is used to end subqueries                           |
-| `aNy_FunCtiOn`    | `ANY_FUNCTION`    | C++ macros are case sensitive                             |
+| SQLite             | SQLpp             | Reason                                                    |
+|--------------------|-------------------|-----------------------------------------------------------|
+| `DEFAULT VALUES`   | `DEFAULT VALUES_` | `VALUES` is used for `INSERT`                             |
+| `BETWEEN x AND y`  | `BETWEEN(x, y)`   | `AND` is used to chain conditions                         |
+| `=` and `<>`       | `==` and `!=`     | `<>` is not a valid operator and `=` is used for `UPDATE` |
+| `foo AS bar`       | `foo AS "bar"`    | Technically possible if the alias is a variable           |
+| `(... END)`        | `(...)`           | `END` is used to end subqueries                           |
+| `aNy_KeyWOrD`      | `ANY_KEYWORD`     | C++ macros are case sensitive                             |
+
+I might add an equivalent for `*` (eg. `SELECT * FROM ...`) in the future.
 
 ## Runtime
 
@@ -89,7 +90,7 @@ int main() {
         return 0;
     }
     
-    // row[id] is an int
+    // row[id] returns an int
     // for aliases, use row["alias"].as<T>()
     
     for (SQLRow &row : res)
