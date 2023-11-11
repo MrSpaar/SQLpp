@@ -5,7 +5,6 @@
 #ifndef SQLPP_MACROS_H
 #define SQLPP_MACROS_H
 
-#include <any>
 #include "queries/select.h"
 #include "queries/insert.h"
 #include "queries/update.h"
