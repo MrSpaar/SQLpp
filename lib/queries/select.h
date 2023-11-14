@@ -5,7 +5,7 @@
 #ifndef SQLPP_SELECT_H
 #define SQLPP_SELECT_H
 
-#include "queries/base.h"
+#include "base.h"
 
 
 namespace sqlpp::keywords::select {

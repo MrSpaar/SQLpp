@@ -5,7 +5,7 @@
 #ifndef SQLPP_DELETE_H
 #define SQLPP_DELETE_H
 
-#include "queries/base.h"
+#include "base.h"
 
 
 namespace sqlpp::keywords::delete_ {

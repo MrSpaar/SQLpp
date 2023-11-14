@@ -5,7 +5,7 @@
 #ifndef SQLPP_UPDATE_H
 #define SQLPP_UPDATE_H
 
-#include "queries/base.h"
+#include "base.h"
 
 
 namespace sqlpp::keywords::update {

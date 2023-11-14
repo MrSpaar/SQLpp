@@ -105,3 +105,22 @@ There is also the possibility to store queries in a variable and execute them la
 SQLQuery query = SELECT id, name, email FROM user END;
 SQLResult res = conn.run(query.sql);
 ```
+
+## Installation
+
+To install the library, you can use the following commands :
+```bash
+git clone http://github.com/MrSpaar/SQLpp
+
+mkdir build && cd build
+cmake ..
+sudo make install
+```
+
+Then, because the library is header-only, you can directly include it in your project :
+```cpp
+#include <sqlpp/macros.h>
+```
+
+> [!WARNING]
+> The library is a wrapper around the SQLite3 C API, so you need to link it to your project.

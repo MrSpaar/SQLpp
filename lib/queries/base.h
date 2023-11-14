@@ -5,7 +5,7 @@
 #ifndef SQLPP_BASE_H
 #define SQLPP_BASE_H
 
-#include "core/conn.h"
+#include "../core/conn.h"
 
 
 namespace sqlpp {

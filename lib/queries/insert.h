@@ -5,7 +5,7 @@
 #ifndef SQLPP_INSERT_H
 #define SQLPP_INSERT_H
 
-#include "queries/base.h"
+#include "base.h"
 
 
 namespace sqlpp::keywords::insert {

@@ -2,7 +2,7 @@
 // Created by mrspaar on 7/13/23.
 //
 
-#include "macros.h"
+#include "lib/macros.h"
 using namespace sqlpp;
 
 TABLE(user,
