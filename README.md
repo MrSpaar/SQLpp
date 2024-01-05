@@ -21,6 +21,9 @@ int main() {
 }
 ```
 
+> [!WARNING]
+> This library isn't meant to be used in any project, it's just an experiment.
+
 ## Coverage
 
 Some syntax differ from standard SQLite due to the use of C++ macros (all uppercase):
@@ -44,10 +47,7 @@ As this is a proof of concept, some features are not implemented yet :
 
 ## Runtime
 
-The library also provides a runtime API, which is a thin wrapper around the SQLite C API.
-It is not checked at compile time and is not type safe.
-
-Here is an example of how to use it :
+The library also provides a runtime API, which is a thin wrapper around the SQLite C API:
 ```cpp
 #include "macros.h"
 using namespace sqlpp;
@@ -86,22 +86,3 @@ There is also the possibility to store queries in a variable and execute them la
 SQLQuery query = SELECT id, name, email FROM user END;
 SQLResult res = conn.run(query.sql);
 ```
-
-## Installation
-
-To install the library, you can use the following commands :
-```bash
-git clone http://github.com/MrSpaar/SQLpp
-
-mkdir build && cd build
-cmake ..
-sudo make install
-```
-
-Then, because the library is header-only, you can directly include it in your project :
-```cpp
-#include <sqlpp/macros.h>
-```
-
-> [!WARNING]
-> The library is a wrapper around the SQLite3 C API, so you need to link it to your project.
