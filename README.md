@@ -34,32 +34,25 @@ int main() {
 
 ## Coverage
 
-As this is a proof of concept, the library is incomplete and partially untested :
-
-| Feature                                                                                                              | Supported   | Notes                                              |
-|----------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------------|
-| [SELECT](https://www.sqlite.org/lang_select.html)                                                                    | ✔️          | `ALL` and `DISTINCT` not yet implemented           |
-| [INSERT](https://www.sqlite.org/lang_insert.html)                                                                    | ✔️          | `INSERT INTO table SELECT ...` not yet implemented |
-| [UPDATE](https://www.sqlite.org/lang_update.html)                                                                    | ✔️          | `(foo, bar, baz) = ...` not yet implemented        |
-| [DELETE](https://www.sqlite.org/lang_delete.html)                                                                    | ✔️          | Full support                                       |
-| [Math](https://www.sqlite.org/lang_mathfunc.html)                                                                    | ✔️          | Full support                                       |
-| [Core functions](https://www.sqlite.org/lang_corefunc.html)                                                          | ✔️          | Full support                                       |
-| [Date/Time](https://www.sqlite.org/lang_datefunc.html)                                                               | ✔️          | Full support                                       |
-| [WITH](https://www.sqlite.org/lang_with.html) and [Windows](https://www.sqlite.org/windowfunctions.html)             | ❌         | Not planned                                        |
-| [Views](https://www.sqlite.org/lang_createview.html) and [Triggers](https://www.sqlite.org/lang_createtrigger.html)  | ❌         | Not planned                                        |
-
 Some syntax differ from standard SQLite due to the use of C++ macros :
 
-| SQLite             | SQLpp             | Reason                                                    |
-|--------------------|-------------------|-----------------------------------------------------------|
-| `DEFAULT VALUES`   | `DEFAULT VALUES_` | `VALUES` is used for `INSERT`                             |
-| `BETWEEN x AND y`  | `BETWEEN(x, y)`   | `AND` is used to chain conditions                         |
-| `=` and `<>`       | `==` and `!=`     | `<>` is not a valid operator and `=` is used for `UPDATE` |
-| `foo AS bar`       | `foo AS "bar"`    | Technically possible if the alias is a variable           |
-| `(... END)`        | `(...)`           | `END` is used to end subqueries                           |
-| `aNy_KeyWOrD`      | `ANY_KEYWORD`     | C++ macros are case sensitive                             |
+| SQLite                | SQLpp                     | Reason                                                    |
+|:----------------------|:--------------------------|:----------------------------------------------------------|
+| `DEFAULT VALUES`      | `DEFAULT VALUES_`         | `VALUES` is used for `INSERT`                             |
+| `BETWEEN x AND y`     | `BETWEEN(x, y)`           | `AND` is used to chain conditions                         |
+| `=` and `<>`          | `==` and `!=`             | `<>` is not a valid operator and `=` is used for `UPDATE` |
+| `foo AS bar`          | `foo AS "bar"`            | Technically possible if the alias is a variable           |
+| `<query or subquery>` | `<query or subquery> END` | Hidden open parenthesis at the end of the query           |
+| `aNy_KeyWOrD`         | `ANY_KEYWORD`             | C++ macros are case sensitive                             |
+| `REPLACE INTO`        | `INSERT OR REPLACE INTO`  | Too much overhead for an alias                            |
 
-I might add an equivalent for `*` (eg. `SELECT * FROM ...`) in the future.
+As this is a proof of concept, some features are not implemented yet :
+- [ ] [Upsert](https://www.sqlite.org/syntax/upsert-clause.html), [returning](https://www.sqlite.org/syntax/returning-clause.html) and [conflict](https://www.sqlite.org/syntax/conflict-clause.html) clauses
+- [ ] `CREATE`[`INDEX`](https://www.sqlite.org/lang_createindex.html)`|`[`TABLE`](https://www.sqlite.org/lang_createtable.html)`|`[`TRIGGER`](https://www.sqlite.org/lang_createtrigger.html)`|`[`VIEW`](https://www.sqlite.org/lang_createview.html) and [`ALTER TABLE`](https://www.sqlite.org/lang_altertable.html)
+- [ ] `DROP`[`INDEX`](https://www.sqlite.org/lang_dropindex.html)`|`[`TABLE`](https://www.sqlite.org/lang_droptable.html)`|`[`TRIGGER`](https://www.sqlite.org/lang_droptrigger.html)`|`[`VIEW`](https://www.sqlite.org/lang_dropview.html)
+- [ ] [Transactions](https://www.sqlite.org/lang_transaction.html) and [`PRAGMA`](https://www.sqlite.org/pragma.html)
+- [ ] [`ANALYZE`](https://www.sqlite.org/lang_analyze.html) and [`EXPLAIN`](https://www.sqlite.org/eqp.html)
+- [ ] [`ATTACH`](https://www.sqlite.org/lang_attach.html) and [`DETACH`](https://www.sqlite.org/lang_detach.html)
 
 ## Runtime
 
