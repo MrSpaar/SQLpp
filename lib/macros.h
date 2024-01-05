@@ -158,8 +158,7 @@
 #define INSERT                     sqlpp::keywords::insert::Insert(
 #define INTO                       ).into(
 #define VALUES(...)                ).values(__VA_ARGS__
-#define DEFAULT                    ).default_
-#define VALUES_                    (
+#define DEFAULT_VALUES             ).default_values(
 
 #define X(str)                     std::string(str)
 #define END                        )

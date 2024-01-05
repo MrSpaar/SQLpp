@@ -9,7 +9,7 @@
 
 
 namespace sqlpp::keywords::insert {
-    struct Default: Runnable {
+    struct Default: Keyword {
         Default& morph() {
             append(" DEFAULT VALUES");
             return *this;
@@ -47,7 +47,7 @@ namespace sqlpp::keywords::insert {
             return ((Values<ValTypes...>*) this)->morph(values...);
         }
 
-        Default& default_() {
+        Default& default_values() {
             return ((Default*) this)->morph();
         }
     };

@@ -15,18 +15,7 @@ TABLE(users,
 int main() {
     SELECT id, nickname FROM users
     WHERE nickname LIKE "%foo%"
-    ORDER BY id DESC LIMIT 20
-    COUT;
-    
-    INSERT INTO users (nickname, avatar)
-    VALUES ("bar", BLOB("baz")) COUT;
-    
-    UPDATE OR IGNORE users
-    SET nickname = "bar"
-    WHERE SQRT(id)+20 == 42 COUT;
-    
-    DELETE FROM users
-    WHERE id == 42 COUT;
+    ORDER BY id DESC LIMIT 20 COUT;
     
     return 0;
 }
@@ -34,16 +23,15 @@ int main() {
 
 ## Coverage
 
-Some syntax differ from standard SQLite due to the use of C++ macros :
+Some syntax differ from standard SQLite due to the use of C++ macros (all uppercase):
 
 | SQLite                | SQLpp                     | Reason                                                    |
 |:----------------------|:--------------------------|:----------------------------------------------------------|
-| `DEFAULT VALUES`      | `DEFAULT VALUES_`         | `VALUES` is used for `INSERT`                             |
-| `BETWEEN x AND y`     | `BETWEEN(x, y)`           | `AND` is used to chain conditions                         |
+| `DEFAULT VALUES`      | `DEFAULT_VALUES`          | `VALUES(..)` is already used and incompatible             |
+| `BETWEEN x AND y`     | `BETWEEN(x, y)`           | Can't use `AND` because of operator precedence            |
 | `=` and `<>`          | `==` and `!=`             | `<>` is not a valid operator and `=` is used for `UPDATE` |
 | `foo AS bar`          | `foo AS "bar"`            | Technically possible if the alias is a variable           |
 | `<query or subquery>` | `<query or subquery> END` | Hidden open parenthesis at the end of the query           |
-| `aNy_KeyWOrD`         | `ANY_KEYWORD`             | C++ macros are case sensitive                             |
 | `REPLACE INTO`        | `INSERT OR REPLACE INTO`  | Too much overhead for an alias                            |
 
 As this is a proof of concept, some features are not implemented yet :
