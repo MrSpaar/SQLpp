@@ -113,9 +113,9 @@
 #define ROUND(x, y)                sqlpp::expr::MathExpr<int, int>("ROUND", x, y)
 #define LOG(...)                   CHOOSE_2(__VA_ARGS__, LOGB, LOG10_2)(__VA_ARGS__)
 
-#define CHANGES()                  sqlpp::expr::MathExpr<std::any, std::any>("CHANGES")
-#define TOTAL_CHANGES()            sqlpp::expr::MathExpr<std::any, std::any>("TOTAL_CHANGES")
-#define LAST_INSERT_ROWID()        sqlpp::expr::MathExpr<std::any, std::any>("LAST_INSERT_ROWID")
+#define CHANGES()                  sqlpp::expr::MathExpr<std::any, int>("CHANGES")
+#define TOTAL_CHANGES()            sqlpp::expr::MathExpr<std::any, int>("TOTAL_CHANGES")
+#define LAST_INSERT_ROWID()        sqlpp::expr::MathExpr<std::any, int>("LAST_INSERT_ROWID")
 
 
 #define AS                         |=
